@@ -19,21 +19,6 @@
       </div>
 
       <nav>
-        <router-link to="/" class="flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 hover:bg-paper-active-link hover:text-white">
-          <HomeIcon class="h-6 w-6"/>
-          <span>Home</span>
-        </router-link>
-
-
-
-            <router-link to="/exemplos" class="flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 hover:bg-paper-active-link hover:text-white">
-              <BeakerIcon class="h-6 w-6" />
-              <span>Exemplos</span>
-            </router-link>
-            <router-link v-if="authStore.isAuthenticated" to="/pacientes" class="flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 hover:bg-paper-active-link hover:text-white">
-              <UsersIcon class="h-6 w-6" />
-              <span>Pacientes</span>
-            </router-link>
             <router-link v-if="authStore.isAuthenticated" to="/solicitacoes" class="flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 hover:bg-paper-active-link hover:text-white">
               <ClipboardDocumentCheckIcon class="h-6 w-6" />
               <span>Solicitações</span>
@@ -79,9 +64,6 @@
 import { ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
-  HomeIcon,
-  BeakerIcon,
-  UsersIcon,
   ShieldCheckIcon,
   CubeTransparentIcon,
   Bars3Icon,
