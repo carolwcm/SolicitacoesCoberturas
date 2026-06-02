@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from .resources.database import DatabaseManager, Base
+from .models.refresh_token import RefreshToken
+from .models.solicitacao import SolicitacaoCobertura, ItemSolicitacao
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -35,10 +37,45 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
     print("App SQLite tables checked/created.")
 
+    # Background task for periodic AGHU import (every 30 minutes)
+    import asyncio
+    from .helpers.aghu_import_service import import_solicitacoes_from_aghu
+    
+    async def periodic_import():
+        await asyncio.sleep(5) # Delay inicial suave
+        while True:
+            try:
+                print("Starting periodic AGHU import background task...")
+                async with app.state.app_db.async_session_maker() as session:
+                    # Se tiver banco do AGHU (Postgres) configurado, passa a sessão
+                    aghu_session = None
+                    if hasattr(app.state, 'aghu_db') and app.state.aghu_db:
+                        try:
+                            aghu_session = app.state.aghu_db.async_session_maker()
+                        except Exception:
+                            pass
+                    
+                    try:
+                        await import_solicitacoes_from_aghu(session, aghu_session)
+                    finally:
+                        if aghu_session:
+                            await aghu_session.close()
+            except Exception as e:
+                print(f"Error in AGHU periodic import: {e}")
+            await asyncio.sleep(1800) # 30 minutos (30 * 60)
+
+    # Inicia a tarefa em background
+    app.state.import_task = asyncio.create_task(periodic_import())
+    print("AGHU periodic import background task scheduled (every 30m).")
+
     yield
 
     # Shutdown
     print("Shutting down...")
+    # Cancela a tarefa em background no shutdown
+    if hasattr(app.state, 'import_task') and app.state.import_task:
+        app.state.import_task.cancel()
+        print("AGHU periodic import background task cancelled.")
     if hasattr(app.state, 'aghu_db') and app.state.aghu_db:
         await app.state.aghu_db.close_connection()
         print("AGHU PostgreSQL connection pool closed.")
@@ -59,13 +96,14 @@ app.mount("/assets", StaticFiles(directory="src/static/dist/assets"), name="asse
 app.mount("/static", StaticFiles(directory="src/static/dist"), name="static")
 
 # Placeholder para incluir os roteadores da API
-from .routers import paciente, auth, admin, aih, bpa, material
+from .routers import paciente, auth, admin, aih, bpa, material, solicitacao_cobertura
 app.include_router(paciente.router)
 app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(aih.router)
 app.include_router(bpa.router)
 app.include_router(material.router)
+app.include_router(solicitacao_cobertura.router)
 
 @app.get("/{full_path:path}")
 async def serve_frontend(full_path: str):

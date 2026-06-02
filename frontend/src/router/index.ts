@@ -6,6 +6,7 @@ import Admin from '../views/Admin.vue';
 
 import Exemplos from '../views/Exemplos.vue';
 import Pacientes from '../views/Pacientes.vue';
+import Solicitacoes from '../views/Solicitacoes.vue';
 
 const routes = [
   {
@@ -35,6 +36,12 @@ const routes = [
     path: '/pacientes',
     name: 'Pacientes',
     component: Pacientes,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/solicitacoes',
+    name: 'Solicitações',
+    component: Solicitacoes,
     meta: { requiresAuth: true },
   },
 ];
