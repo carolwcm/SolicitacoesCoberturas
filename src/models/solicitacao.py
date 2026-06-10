@@ -23,6 +23,7 @@ class SolicitacaoCobertura(Base):
     # Dados de Entrega (Farmácia)
     farmaceutico_username = Column(String, nullable=True)
     data_entrega = Column(DateTime, nullable=True)
+    parecer_farmacia = Column(String, nullable=True)
     
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
@@ -40,6 +41,7 @@ class ItemSolicitacao(Base):
     nome_material = Column(String, nullable=False)
     quantidade_solicitada = Column(Integer, nullable=False)
     quantidade_autorizada = Column(Integer, nullable=True) # Definida pela CCIRAS
+    quantidade_liberada = Column(Integer, nullable=True) # Definida pela Farmácia
     status_item = Column(String, default="PENDENTE") # PENDENTE, AUTORIZADO, NEGADO
 
     solicitacao = relationship("SolicitacaoCobertura", back_populates="itens")

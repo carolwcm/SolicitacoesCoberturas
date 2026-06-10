@@ -34,6 +34,13 @@ class SolicitacaoCoberturaProviderInterface(ABC):
         pass
 
     @abstractmethod
-    async def registrar_entrega(self, solicitacao_id: int, farmaceutico: str) -> Dict[str, Any]:
+    async def registrar_entrega(
+        self, 
+        solicitacao_id: int, 
+        farmaceutico: str,
+        status_geral: str,
+        justificativa: str,
+        itens_atualizados: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Registra a entrega/liberação dos itens pela farmácia."""
         pass

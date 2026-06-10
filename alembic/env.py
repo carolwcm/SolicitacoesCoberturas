@@ -26,6 +26,8 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 from src.resources.database import Base
+from src.models.refresh_token import RefreshToken
+from src.models.solicitacao import SolicitacaoCobertura, ItemSolicitacao
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

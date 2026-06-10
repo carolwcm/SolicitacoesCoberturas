@@ -21,6 +21,16 @@ export const useAuthStore = defineStore('auth', () => {
     const ADMIN_GROUP = "GLO-SEC-HCPE-SETISD"; 
     return user.value?.groups?.includes(ADMIN_GROUP) || false;
   });
+  const isCciras = computed(() => {
+    const CCIRAS_GROUP = "SOL-COB-CCIRAS";
+    const ADMIN_GROUP = "GLO-SEC-HCPE-SETISD";
+    return user.value?.groups?.includes(CCIRAS_GROUP) || user.value?.groups?.includes(ADMIN_GROUP) || false;
+  });
+  const isFarmacia = computed(() => {
+    const FARMACIA_GROUP = "SOL-COB-FARMACIA";
+    const ADMIN_GROUP = "GLO-SEC-HCPE-SETISD";
+    return user.value?.groups?.includes(FARMACIA_GROUP) || user.value?.groups?.includes(ADMIN_GROUP) || false;
+  });
 
   function setToken(token: string) {
     accessToken.value = token;
@@ -103,6 +113,8 @@ export const useAuthStore = defineStore('auth', () => {
     user, 
     isAuthenticated, 
     isAdmin, 
+    isCciras,
+    isFarmacia,
     login, 
     logout,
     setToken,

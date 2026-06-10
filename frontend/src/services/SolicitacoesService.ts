@@ -8,6 +8,7 @@ export interface ItemSolicitacao {
   nome_material: string;
   quantidade_solicitada: number;
   quantidade_autorizada?: number | null;
+  quantidade_liberada?: number | null;
   status_item?: string;
 }
 
@@ -23,6 +24,7 @@ export interface SolicitacaoCobertura {
   justificativa?: string | null;
   farmaceutico_username?: string | null;
   data_entrega?: string | null;
+  parecer_farmacia?: string | null;
   created_at?: string;
   updated_at?: string;
   itens: ItemSolicitacao[];
@@ -35,6 +37,15 @@ export interface AuditoriaPayload {
     id: number;
     quantidade_autorizada: number | null;
     status_item: string;
+  }[];
+}
+
+export interface LiberacaoPayload {
+  status_geral: string;
+  justificativa: string;
+  itens: {
+    id: number;
+    quantidade_liberada: number;
   }[];
 }
 
@@ -55,8 +66,8 @@ class SolicitacoesService {
     return response.data;
   }
 
-  async entregar(id: number): Promise<SolicitacaoCobertura> {
-    const response = await api.put(`/api/solicitacoes/${id}/entregar`);
+  async entregar(id: number, payload: LiberacaoPayload): Promise<SolicitacaoCobertura> {
+    const response = await api.put(`/api/solicitacoes/${id}/entregar`, payload);
     return response.data;
   }
 

@@ -36,13 +36,28 @@ class MockAuthProvider(AuthProviderInterface):
         print("--- Using Mock Authentication ---")
         if username == "admin" and password == "admin":
             print(f"Authentication successful for mock user: {username}")
-            # O nome do grupo que o frontend usa para identificar administradores
             admin_group = "GLO-SEC-HCPE-SETISD"
             return {
                 "username": "admin",
                 "displayName": ["Mock Admin"],
                 "groups": [admin_group, "Users"],
                 "email": "admin@mock.com"
+            }
+        elif username == "cciras" and password == "cciras":
+            print(f"Authentication successful for mock user: {username}")
+            return {
+                "username": "cciras",
+                "displayName": ["Mock CCIRAS"],
+                "groups": ["SOL-COB-CCIRAS", "Users"],
+                "email": "cciras@mock.com"
+            }
+        elif username == "farmacia" and password == "farmacia":
+            print(f"Authentication successful for mock user: {username}")
+            return {
+                "username": "farmacia",
+                "displayName": ["Mock Farmácia"],
+                "groups": ["SOL-COB-FARMACIA", "Users"],
+                "email": "farmacia@mock.com"
             }
         else:
             print(f"Authentication failed for mock user: {username}")

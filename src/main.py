@@ -105,16 +105,27 @@ app.include_router(bpa.router)
 app.include_router(material.router)
 app.include_router(solicitacao_cobertura.router)
 
+@app.get("/hc_logo.jpg")
+async def serve_logo():
+    logo_path = os.path.join("src", "static", "dist", "hc_logo.jpg")
+    if os.path.exists(logo_path):
+        return FileResponse(logo_path, media_type="image/jpeg")
+    raise HTTPException(status_code=404, detail="Logo not found")
+
 @app.get("/{full_path:path}")
 async def serve_frontend(full_path: str):
     """
     Serve o arquivo index.html para todas as rotas que não são da API ou arquivos estáticos.
     Isso é necessário para que o roteamento do Vue (SPA) funcione.
     """
-    # Se a rota começa com 'api', deixa o roteador do FastAPI lidar
     if full_path.startswith("api"):
         raise HTTPException(status_code=404, detail="API route not found")
     
+    # Se o arquivo solicitado existir na pasta dist, serve ele diretamente
+    file_path = os.path.join("src", "static", "dist", full_path)
+    if full_path and os.path.isfile(file_path):
+        return FileResponse(file_path)
+        
     index_path = os.path.join("src", "static", "dist", "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path)

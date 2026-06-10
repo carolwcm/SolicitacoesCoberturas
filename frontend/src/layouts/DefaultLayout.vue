@@ -2,35 +2,51 @@
   <div class="relative h-screen overflow-hidden md:flex">
     <!-- Mobile Menu -->
     <div class="bg-paper-sidebar text-gray-100 flex justify-between md:hidden shrink-0">
-      <router-link to="/" class="block p-4 text-white font-bold">My App</router-link>
+      <router-link to="/" class="block p-4 text-white font-bold">Hospital Curativos</router-link>
       <button @click="sidebarOpen = !sidebarOpen" class="p-4 focus:outline-none focus:bg-paper-active-link">
         <Bars3Icon class="h-6 w-6" />
       </button>
     </div>
 
     <!-- Sidebar -->
-    <aside :class="{ '-translate-x-full': !sidebarOpen }" class="bg-paper-sidebar text-gray-100 w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform md:relative md:translate-x-0 transition duration-200 ease-in-out z-20 h-full shrink-0">
-      <div @click="() => router.push('/')" class="cursor-pointer text-white flex items-center space-x-2 px-4">
-        <CubeTransparentIcon class="h-8 w-8"/>
-        <span class="text-2xl font-extrabold">My App</span>
+    <aside :class="{ '-translate-x-full': !sidebarOpen }" class="bg-paper-sidebar text-gray-100 w-64 flex flex-col justify-between py-7 px-4 absolute inset-y-0 left-0 transform md:relative md:translate-x-0 transition duration-200 ease-in-out z-20 h-full shrink-0">
+      <div class="space-y-6">
+        <div @click="() => router.push('/')" class="cursor-pointer flex items-center justify-center p-2">
+          <img src="/hc_logo.jpg" alt="Hospital Logo" class="h-16 w-auto object-contain rounded-xl max-w-full">
+        </div>
+        <div class="my-6">
+          <div class="border-t border-white border-opacity-20"></div>
+        </div>
+
+        <nav class="space-y-2">
+          <router-link v-if="authStore.isAuthenticated" to="/solicitacoes" class="flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 hover:bg-paper-active-link hover:text-white">
+            <ClipboardDocumentCheckIcon class="h-6 w-6" />
+            <span>Painel</span>
+          </router-link>
+
+          <router-link v-if="authStore.isAuthenticated" to="/relatorios" class="flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 hover:bg-paper-active-link hover:text-white">
+            <ChartBarIcon class="h-6 w-6" />
+            <span>Relatórios</span>
+          </router-link>
+          
+          <router-link v-if="authStore.isAdmin" to="/admin" class="flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 hover:bg-paper-active-link hover:text-white">
+            <ShieldCheckIcon class="h-6 w-6"/>
+            <span>Admin</span>
+          </router-link>
+        </nav>
       </div>
-      <div class="px-4 my-6">
-        <div class="border-t border-white border-opacity-20"></div>
+
+      <!-- User Info & Logout (Bottom) -->
+      <div v-if="authStore.isAuthenticated" class="pt-6 border-t border-white border-opacity-20 space-y-3">
+        <div class="px-2">
+          <p class="text-xs text-gray-400 font-semibold uppercase">Usuário Logado</p>
+          <p class="text-sm font-bold text-white truncate">{{ authStore.user?.username }}</p>
+        </div>
+        <button @click="() => authStore.logout(router)" class="w-full flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 text-sm font-bold cursor-pointer">
+          <ArrowLeftOnRectangleIcon class="h-5 w-5" />
+          <span>Sair</span>
+        </button>
       </div>
-
-      <nav>
-            <router-link v-if="authStore.isAuthenticated" to="/solicitacoes" class="flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 hover:bg-paper-active-link hover:text-white">
-              <ClipboardDocumentCheckIcon class="h-6 w-6" />
-              <span>Solicitações</span>
-            </router-link>
-        
-        <router-link v-if="authStore.isAdmin" to="/admin" class="flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 hover:bg-paper-active-link hover:text-white">
-          <ShieldCheckIcon class="h-6 w-6"/>
-          <span>Admin</span>
-        </router-link>
-
-
-      </nav>
     </aside>
 
     <!-- Content -->
@@ -65,10 +81,11 @@ import { ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
   ShieldCheckIcon,
-  CubeTransparentIcon,
   Bars3Icon,
   ArrowRightOnRectangleIcon,
+  ArrowLeftOnRectangleIcon,
   ClipboardDocumentCheckIcon,
+  ChartBarIcon,
 } from '@heroicons/vue/24/outline';
 import ProfileDropdown from '../components/ProfileDropdown.vue';
 import Button from '../components/Button.vue';
@@ -78,7 +95,6 @@ const sidebarOpen = ref(false);
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
-
 
 // Close sidebar on route change
 watch(() => route.path, () => {

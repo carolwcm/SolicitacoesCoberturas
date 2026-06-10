@@ -35,9 +35,18 @@ class ItemAuditoriaInput(BaseModel):
     status_item: str # AUTORIZADO, NEGADO, PENDENTE
 
 class AuditoriaInput(BaseModel):
-    status_geral: str # AUTORIZADO, NEGADO
+    status_geral: str # AUTORIZADO, NEGADO, EM ANÁLISE, LIBERADO
     justificativa: str
     itens: List[ItemAuditoriaInput]
+
+class ItemLiberacaoInput(BaseModel):
+    id: int
+    quantidade_liberada: int
+
+class LiberacaoInput(BaseModel):
+    status_geral: str # LIBERADO, EM FALTA
+    justificativa: str
+    itens: List[ItemLiberacaoInput]
 
 # Verificadores de Acesso (AD Groups)
 CCIRAS_GROUP = "SOL-COB-CCIRAS"
@@ -108,6 +117,7 @@ async def auditar_solicitacao(
 @router.put("/{id}/entregar", response_model=dict)
 async def entregar_solicitacao(
     id: int,
+    payload: LiberacaoInput,
     current_user: dict = Depends(verify_farmacia_group),
     provider: SolicitacaoCoberturaProviderInterface = Depends(get_solicitacao_cobertura_provider)
 ):
@@ -116,6 +126,9 @@ async def entregar_solicitacao(
     return await solicitacao_cobertura_controller.entregar_solicitacao(
         solicitacao_id=id,
         farmaceutico=farmaceutico,
+        status_geral=payload.status_geral,
+        justificativa=payload.justificativa,
+        itens_atualizados=[item.model_dump() for item in payload.itens],
         provider=provider
     )
 

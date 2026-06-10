@@ -27,6 +27,7 @@ class SolicitacaoCoberturaSqliteProvider(SolicitacaoCoberturaProviderInterface):
             "justificativa": sol.justificativa,
             "farmaceutico_username": sol.farmaceutico_username,
             "data_entrega": sol.data_entrega.isoformat() if sol.data_entrega else None,
+            "parecer_farmacia": sol.parecer_farmacia,
             "created_at": sol.created_at.isoformat() if sol.created_at else None,
             "updated_at": sol.updated_at.isoformat() if sol.updated_at else None,
             "itens": [
@@ -36,6 +37,7 @@ class SolicitacaoCoberturaSqliteProvider(SolicitacaoCoberturaProviderInterface):
                     "nome_material": item.nome_material,
                     "quantidade_solicitada": item.quantidade_solicitada,
                     "quantidade_autorizada": item.quantidade_autorizada,
+                    "quantidade_liberada": item.quantidade_liberada,
                     "status_item": item.status_item
                 } for item in sol.itens
             ]
@@ -127,7 +129,14 @@ class SolicitacaoCoberturaSqliteProvider(SolicitacaoCoberturaProviderInterface):
         await self.session.commit()
         return self._solicitacao_to_dict(sol)
 
-    async def registrar_entrega(self, solicitacao_id: int, farmaceutico: str) -> Dict[str, Any]:
+    async def registrar_entrega(
+        self, 
+        solicitacao_id: int, 
+        farmaceutico: str,
+        status_geral: str,
+        justificativa: str,
+        itens_atualizados: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         stmt = select(SolicitacaoCobertura).where(SolicitacaoCobertura.id == solicitacao_id)
         result = await self.session.execute(stmt)
         sol = result.scalar_one_or_none()
@@ -138,15 +147,23 @@ class SolicitacaoCoberturaSqliteProvider(SolicitacaoCoberturaProviderInterface):
                 detail=f"Solicitação com ID {solicitacao_id} não encontrada."
             )
 
-        if sol.status != "AUTORIZADO":
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, 
-                detail="Somente solicitações no status AUTORIZADO podem ser entregues."
-            )
-
-        sol.status = "ENTREGUE"
+        sol.status = status_geral.upper()
         sol.farmaceutico_username = farmaceutico
         sol.data_entrega = datetime.now()
+        sol.parecer_farmacia = justificativa
+
+        # Mapeia itens existentes por ID
+        itens_map = {item.id: item for item in sol.itens}
+        
+        for item_up in itens_atualizados:
+            item_id = item_up.get("id")
+            if item_id in itens_map:
+                item = itens_map[item_id]
+                item.quantidade_liberada = item_up.get("quantidade_liberada")
+                if status_geral.upper() == "LIBERADO":
+                    item.status_item = "LIBERADO"
+                elif status_geral.upper() == "EM FALTA":
+                    item.status_item = "EM FALTA"
 
         await self.session.commit()
         return self._solicitacao_to_dict(sol)
