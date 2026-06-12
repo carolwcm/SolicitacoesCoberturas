@@ -16,11 +16,11 @@
         class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
       >
         <div 
-          class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all"
+          class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all flex flex-col max-h-[90vh]"
           @click.stop
         >
           <!-- Header -->
-          <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+          <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
             <h2 class="text-xl font-bold text-gray-800">
               <slot name="header">Título do Modal</slot>
             </h2>
@@ -33,12 +33,12 @@
           </div>
 
           <!-- Body -->
-          <div class="px-6 py-6 text-gray-600 leading-relaxed">
+          <div class="px-6 py-6 text-gray-600 leading-relaxed flex-1 overflow-y-auto">
             <slot></slot>
           </div>
 
           <!-- Footer -->
-          <div v-if="$slots.footer" class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end space-x-3">
+          <div v-if="$slots.footer" class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end space-x-3 shrink-0">
             <slot name="footer"></slot>
           </div>
         </div>

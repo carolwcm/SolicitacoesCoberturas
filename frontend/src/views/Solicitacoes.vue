@@ -19,7 +19,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18.25" />
             </svg>
           </template>
-          Importar AGHU Manual
+          Atualizar
         </Button>
 
         <!-- Farmácia manual update -->
@@ -36,6 +36,8 @@
         <Button @click="showSimuladorModal = true" variant="default">
           Simular AGHU
         </Button>
+
+        <ProfileDropdown />
       </div>
     </div>
 
@@ -192,7 +194,7 @@
         <div>
           <h3 class="font-bold text-slate-800 mb-3">Coberturas e Quantidades</h3>
           <div class="space-y-3">
-            <div v-for="item in itensEdicao" :key="item.id" class="border border-slate-150 rounded-2xl p-4 bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div v-for="item in (isCciras ? itensEdicao : itensEdicao.filter(i => i.status_item === 'AUTORIZADO' || i.status_item === 'NEGADO'))" :key="item.id" class="border border-slate-150 rounded-2xl p-4 bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div class="flex-1">
                 <p class="font-semibold text-slate-900">{{ item.nome_material }}</p>
                 <p class="text-xs text-slate-500">Código: {{ item.codigo_material }}</p>
@@ -318,6 +320,7 @@ import Card from '../components/Card.vue';
 import Button from '../components/Button.vue';
 import Modal from '../components/Modal.vue';
 import LoadingIndicator from '../components/LoadingIndicator.vue';
+import ProfileDropdown from '../components/ProfileDropdown.vue';
 import { useAuthStore } from '../stores/auth';
 
 const toast = useToast();

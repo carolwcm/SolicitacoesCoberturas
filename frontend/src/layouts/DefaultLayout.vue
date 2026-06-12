@@ -11,8 +11,8 @@
     <!-- Sidebar -->
     <aside :class="{ '-translate-x-full': !sidebarOpen }" class="bg-paper-sidebar text-gray-100 w-64 flex flex-col justify-between py-7 px-4 absolute inset-y-0 left-0 transform md:relative md:translate-x-0 transition duration-200 ease-in-out z-20 h-full shrink-0">
       <div class="space-y-6">
-        <div @click="() => router.push('/')" class="cursor-pointer flex items-center justify-center p-2">
-          <img src="/hc_logo.jpg" alt="Hospital Logo" class="h-16 w-auto object-contain rounded-xl max-w-full">
+        <div @click="() => router.push('/')" class="cursor-pointer flex items-center justify-center px-1 py-1">
+          <img src="/woundflow.png" alt="WoundFlow Logo" class="w-full max-h-24 object-contain rounded-xl">
         </div>
         <div class="my-6">
           <div class="border-t border-white border-opacity-20"></div>
@@ -36,37 +36,14 @@
         </nav>
       </div>
 
-      <!-- User Info & Logout (Bottom) -->
-      <div v-if="authStore.isAuthenticated" class="pt-6 border-t border-white border-opacity-20 space-y-3">
-        <div class="px-2">
-          <p class="text-xs text-gray-400 font-semibold uppercase">Usuário Logado</p>
-          <p class="text-sm font-bold text-white truncate">{{ authStore.user?.username }}</p>
-        </div>
-        <button @click="() => authStore.logout(router)" class="w-full flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 text-sm font-bold cursor-pointer">
-          <ArrowLeftOnRectangleIcon class="h-5 w-5" />
-          <span>Sair</span>
-        </button>
+      <!-- Logo HC no canto inferior da barra lateral -->
+      <div class="mt-auto pt-4 border-t border-white border-opacity-20 flex items-center justify-center px-2">
+        <img src="/hc_logo.jpg" alt="Hospital Logo" class="w-full max-h-14 object-contain rounded-lg opacity-85 hover:opacity-100 transition-opacity">
       </div>
     </aside>
 
     <!-- Content -->
     <div class="flex-1 flex flex-col bg-paper-bg overflow-y-auto h-full">
-      <header class="flex justify-between items-center p-6 bg-white/80 backdrop-blur-md border-b border-gray-300 sticky top-0 z-10">
-        <div>
-          <h1 class="text-2xl font-semibold text-paper-text">{{ $route.name }}</h1>
-        </div>
-        <div>
-          <router-link v-if="!authStore.isAuthenticated" to="/login">
-            <Button variant="primary">
-              <template #icon>
-                <ArrowRightOnRectangleIcon class="h-5 w-5" />
-              </template>
-              Login
-            </Button>
-          </router-link>
-          <ProfileDropdown v-else />
-        </div>
-      </header>
       <main class="flex-1">
         <div class="container py-4 md:py-6">
           <router-view />
@@ -82,13 +59,9 @@ import { useRoute, useRouter } from 'vue-router';
 import {
   ShieldCheckIcon,
   Bars3Icon,
-  ArrowRightOnRectangleIcon,
-  ArrowLeftOnRectangleIcon,
   ClipboardDocumentCheckIcon,
   ChartBarIcon,
 } from '@heroicons/vue/24/outline';
-import ProfileDropdown from '../components/ProfileDropdown.vue';
-import Button from '../components/Button.vue';
 import { useAuthStore } from '../stores/auth';
 
 const sidebarOpen = ref(false);

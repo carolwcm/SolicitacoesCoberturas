@@ -1,5 +1,18 @@
 <template>
-  <div class="w-full max-w-md">
+  <div v-if="showSplash" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 select-none">
+    <div class="max-w-lg p-6 flex flex-col items-center">
+      <img src="/woundflowentrada.png" alt="WoundFlow Entrada" class="max-h-[75vh] w-auto object-contain rounded-2xl shadow-2xl mb-8">
+      <div class="flex items-center gap-3 text-white font-semibold text-lg">
+        <svg class="animate-spin h-6 w-6 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Carregando Painel WoundFlow...</span>
+      </div>
+    </div>
+  </div>
+
+  <div v-else class="w-full max-w-md">
     <Card>
       <template #header>
         <h1 class="text-xl font-semibold text-center">Login</h1>
@@ -65,6 +78,7 @@ const rememberMe = ref(false);
 const error = ref('');
 const loading = ref(false);
 const passwordVisible = ref(false);
+const showSplash = ref(false);
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -87,7 +101,9 @@ const handleLogin = async () => {
   error.value = '';
   try {
     await authStore.login(username.value, password.value, rememberMe.value);
-    await router.push('/admin'); // Or wherever you want to redirect after login
+    showSplash.value = true;
+    await new Promise(resolve => setTimeout(resolve, 4000));
+    await router.push('/solicitacoes');
   } catch (e: any) {
     error.value = e.response?.data?.detail || e.message || 'An unknown error occurred';
   } finally {

@@ -1,7 +1,8 @@
 <template>
-  <div class="relative">
-    <button @click="isOpen = !isOpen" class="relative z-10 block h-10 w-10 rounded-full overflow-hidden border-2 border-gray-600 focus:outline-none focus:border-white transition-transform active:scale-95">
-      <UserCircleIcon class="h-full w-full text-gray-600" />
+  <div class="relative flex items-center gap-2">
+    <span class="text-sm font-semibold text-slate-700 select-none">{{ authStore.user?.givenName?.[0] || authStore.user?.username || 'Usuário' }}</span>
+    <button @click="isOpen = !isOpen" class="relative z-10 block h-12 w-12 rounded-xl overflow-hidden focus:outline-none transition-transform active:scale-95 cursor-pointer">
+      <img src="/logousuario.png" alt="User Logo" class="h-full w-full object-cover">
     </button>
 
     <div v-if="isOpen" @click="isOpen = false" class="fixed inset-0 h-full w-full z-10"></div>
@@ -10,8 +11,8 @@
       <div class="p-5">
         <div class="flex items-center space-x-4">
           <div class="flex-shrink-0">
-            <div class="h-14 w-14 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
-              <UserCircleIcon class="h-10 w-10 text-gray-400" />
+            <div class="h-18 w-18 rounded-xl bg-gray-100 flex items-center justify-center border border-gray-200 overflow-hidden">
+              <img src="/logousuario.png" alt="User Logo" class="h-full w-full object-cover">
             </div>
           </div>
           <div class="flex-1 min-w-0">
@@ -25,7 +26,7 @@
         </div>
       </div>
       
-      <div class="border-t border-gray-100 bg-gray-50/50">
+      <div class="border-t border-gray-100 bg-gray-55/50">
         <div class="p-5 space-y-4 text-sm">
           <div class="flex items-start">
             <BriefcaseIcon class="h-5 w-5 mr-3 text-gray-400 shrink-0 mt-0.5" />
@@ -52,9 +53,9 @@
       </div>
 
       <div class="border-t border-gray-100 bg-gray-100/50">
-        <a href="#" @click.prevent="handleLogout" class="flex items-center justify-center px-4 py-3.5 text-sm font-semibold text-red-600 hover:bg-red-50 hover:text-red-700 transition duration-150 ease-in-out">
+        <a href="#" @click.prevent="handleLogout" class="flex items-center justify-center px-4 py-3.5 text-sm font-semibold text-red-650 hover:bg-red-50 hover:text-red-750 transition duration-150 ease-in-out">
           <ArrowLeftOnRectangleIcon class="h-5 w-5 mr-2" />
-          <span>Sair da Conta</span>
+          <span>Sair</span>
         </a>
       </div>
     </div>
@@ -64,7 +65,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { UserCircleIcon, ArrowLeftOnRectangleIcon, BriefcaseIcon, BuildingOffice2Icon, IdentificationIcon } from '@heroicons/vue/24/outline';
+import { ArrowLeftOnRectangleIcon, BriefcaseIcon, BuildingOffice2Icon, IdentificationIcon } from '@heroicons/vue/24/outline';
 import { useAuthStore } from '../stores/auth';
 
 const route = useRoute();

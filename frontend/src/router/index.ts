@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory, NavigationGuardNext } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
-import Home from '../views/Home.vue';
 import Login from '../views/Login.vue';
 import Admin from '../views/Admin.vue';
 
@@ -11,8 +10,7 @@ import Solicitacoes from '../views/Solicitacoes.vue';
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: Home,
+    redirect: '/solicitacoes',
   },
   {
     path: '/login',

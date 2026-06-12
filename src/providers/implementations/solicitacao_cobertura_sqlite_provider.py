@@ -127,6 +127,10 @@ class SolicitacaoCoberturaSqliteProvider(SolicitacaoCoberturaProviderInterface):
                 item.status_item = item_up.get("status_item", "PENDENTE").upper()
 
         await self.session.commit()
+        # Recarrega a solicitação com seus itens
+        stmt = select(SolicitacaoCobertura).where(SolicitacaoCobertura.id == solicitacao_id)
+        result = await self.session.execute(stmt)
+        sol = result.scalar_one()
         return self._solicitacao_to_dict(sol)
 
     async def registrar_entrega(
@@ -166,4 +170,8 @@ class SolicitacaoCoberturaSqliteProvider(SolicitacaoCoberturaProviderInterface):
                     item.status_item = "EM FALTA"
 
         await self.session.commit()
+        # Recarrega a solicitação com seus itens
+        stmt = select(SolicitacaoCobertura).where(SolicitacaoCobertura.id == solicitacao_id)
+        result = await self.session.execute(stmt)
+        sol = result.scalar_one()
         return self._solicitacao_to_dict(sol)

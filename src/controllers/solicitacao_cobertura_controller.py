@@ -64,8 +64,7 @@ async def auditar_solicitacao(
         auditor=auditor,
         status_geral=status_geral,
         justificativa=justificativa,
-        itens_atualizados=itens_atualizados,
-        provider=provider
+        itens_atualizados=itens_atualizados
     )
 
 async def entregar_solicitacao(
