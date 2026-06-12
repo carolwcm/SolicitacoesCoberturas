@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <!-- Header Area -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 no-print">
       <div>
         <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Relatórios CCIRAS</h1>
         <p class="text-sm text-slate-500 mt-1">Análise de indicadores, produtividade, economia e SLA de avaliações.</p>
@@ -25,10 +25,60 @@
       </div>
     </div>
 
+    <!-- Filters Panel -->
+    <div class="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-100 no-print">
+      <div class="flex flex-wrap items-center gap-4 w-full md:w-auto">
+        <!-- Period Filter -->
+        <div class="flex flex-col">
+          <label class="text-xs font-bold text-slate-400 uppercase mb-1">Período</label>
+          <select 
+            v-model="filtroPeriodo" 
+            class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 font-semibold focus:outline-none focus:border-indigo-650 cursor-pointer min-w-[150px]"
+          >
+            <option value="todos">Todos</option>
+            <option value="7d">Últimos 7 dias</option>
+            <option value="30d">Últimos 30 dias</option>
+            <option value="mes">Mês atual</option>
+          </select>
+        </div>
+
+        <!-- Unit Filter -->
+        <div class="flex flex-col">
+          <label class="text-xs font-bold text-slate-400 uppercase mb-1">Unidade Funcional</label>
+          <select 
+            v-model="filtroUnidade" 
+            class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 font-semibold focus:outline-none focus:border-indigo-650 cursor-pointer min-w-[180px]"
+          >
+            <option value="todas">Todas</option>
+            <option value="UTI Adulto">UTI Adulto</option>
+            <option value="Clínica Médica">Clínica Médica</option>
+            <option value="Clínica Cirúrgica">Clínica Cirúrgica</option>
+            <option value="Emergência">Emergência</option>
+            <option value="Ortopedia">Ortopedia</option>
+            <option value="Pediatria">Pediatria</option>
+            <option value="Oncologia">Oncologia</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Export to Print Button -->
+      <div>
+        <button 
+          @click="exportarImpressao"
+          class="flex items-center gap-2 bg-indigo-650 hover:bg-indigo-700 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all shadow-sm cursor-pointer"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          <span>Exportar para Impressão</span>
+        </button>
+      </div>
+    </div>
+
     <!-- TAB 1: VISÃO GERAL -->
     <div v-if="activeTab === 'geral'" class="space-y-6">
       <!-- Upper Metrics Row -->
-      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <!-- Metric Cards -->
         <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center space-x-4">
           <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -93,46 +143,6 @@
             <p class="text-[10px] text-slate-400 font-semibold">{{ pctLiberadas }}% do total</p>
           </div>
         </div>
-      </div>
-
-      <!-- Financial Metrics Row -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center space-x-4">
-          <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase">Valor Total Solicitado</p>
-            <p class="text-xl font-extrabold text-slate-800">R$ {{ formatarMoeda(valorTotalSolicitado) }}</p>
-          </div>
-        </div>
-
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center space-x-4">
-          <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8h6m-6 2h6m-6 2h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </div>
-          <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase">Valor Total Autorizado</p>
-            <p class="text-xl font-extrabold text-slate-800">R$ {{ formatarMoeda(valorTotalAutorizado) }}</p>
-          </div>
-        </div>
-
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center space-x-4">
-          <div class="p-3 bg-teal-50 text-teal-600 rounded-xl">
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-          </div>
-          <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase">Economia Gerada</p>
-            <p class="text-xl font-extrabold text-teal-700">R$ {{ formatarMoeda(economiaGerada) }}</p>
-            <p class="text-[10px] text-teal-600 font-bold">({{ economiaPct }}% de economia)</p>
-          </div>
-        </div>
 
         <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center space-x-4">
           <div class="p-3 bg-violet-50 text-violet-600 rounded-xl">
@@ -142,7 +152,7 @@
           </div>
           <div>
             <p class="text-xs font-semibold text-slate-400 uppercase">Tempo Médio Resposta</p>
-            <p class="text-xl font-extrabold text-slate-800">{{ tempoMedioResposta }}</p>
+            <p class="text-2xl font-extrabold text-slate-800">{{ tempoMedioResposta }}</p>
           </div>
         </div>
       </div>
@@ -215,7 +225,7 @@
       </div>
     </div>
 
-    <!-- TAB 2: QUALIDADE & SLA -->
+    <!-- TAB 2: INDICADORES DE QUALIDADE -->
     <div v-if="activeTab === 'qualidade'" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <!-- Quality Cards -->
@@ -320,11 +330,11 @@
       </div>
     </div>
 
-    <!-- TAB 3: RASTREABILIDADE (LINHA DO TEMPO) -->
+    <!-- TAB 3: AUDITORIA E RASTREABILIDADE -->
     <div v-if="activeTab === 'linha'" class="space-y-6">
       <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
         <!-- Search bar -->
-        <div>
+        <div class="no-print">
           <label class="block text-sm font-bold text-slate-700 mb-2">Protocolo ou Nome do Paciente</label>
           <div class="relative max-w-md">
             <input 
@@ -352,7 +362,7 @@
         <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
           <!-- Timeline -->
           <div class="md:col-span-1 border border-slate-100 rounded-2xl p-5 bg-slate-50/50">
-            <h4 class="font-bold text-slate-700 mb-4">Linha do tempo</h4>
+            <h4 class="font-bold text-slate-700 mb-4">Auditoria e rastreabilidade</h4>
             <div class="space-y-6 relative border-l-2 border-indigo-600 ml-4 pl-6">
               <div v-for="step in traceSteps" :key="step.title" class="relative">
                 <!-- Checkpoint Circle -->
@@ -426,10 +436,14 @@ const activeTab = ref('geral');
 const loading = ref(false);
 const solicitacoes = ref<SolicitacaoCobertura[]>([]);
 
+// Filters
+const filtroPeriodo = ref('todos');
+const filtroUnidade = ref('todas');
+
 const tabs = [
   { id: 'geral', name: 'Visão Geral' },
-  { id: 'qualidade', name: 'Qualidade & SLA' },
-  { id: 'linha', name: 'Linha do Tempo' }
+  { id: 'qualidade', name: 'Indicadores de Qualidade' },
+  { id: 'linha', name: 'Auditoria e rastreabilidade' }
 ];
 
 // Load all solicitations data on mount
@@ -448,60 +462,56 @@ onMounted(() => {
   loadData();
 });
 
-// Tab 1: General Computations
-const totalCount = computed(() => solicitacoes.value.length || 1); // Avoid division by zero
-const autorizadasCount = computed(() => solicitacoes.value.filter(s => s.status === 'AUTORIZADO' || s.status === 'LIBERADO' || s.status === 'ENTREGUE').length);
-const negadasCount = computed(() => solicitacoes.value.filter(s => s.status === 'NEGADO').length);
-const emAnaliseCount = computed(() => solicitacoes.value.filter(s => s.status === 'EM ANÁLISE').length);
-const pendentesCount = computed(() => solicitacoes.value.filter(s => s.status === 'PENDENTE').length);
-const liberadasCount = computed(() => solicitacoes.value.filter(s => s.status === 'LIBERADO' || s.status === 'ENTREGUE').length);
+// Dynamic filtering of solicitations
+const filteredSolicitacoes = computed(() => {
+  let list = solicitacoes.value;
 
-const pctAutorizadas = computed(() => Math.round((autorizadasCount.value / totalCount.value) * 100));
-const pctNegadas = computed(() => Math.round((negadasCount.value / totalCount.value) * 100));
-const pctEmAnalise = computed(() => Math.round((emAnaliseCount.value / totalCount.value) * 100));
-const pctLiberadas = computed(() => Math.round((liberadasCount.value / totalCount.value) * 100));
-
-// Pricing mapping to calculate values
-const getMaterialPrice = (name: string): number => {
-  const normalized = name.toLowerCase();
-  if (normalized.includes('colágeno') || normalized.includes('colageno')) return 150;
-  if (normalized.includes('alginato')) return 90;
-  if (normalized.includes('espuma')) return 110;
-  if (normalized.includes('hidrogel')) return 75;
-  if (normalized.includes('filme')) return 45;
-  if (normalized.includes('hidrocol')) return 60;
-  return 50;
-};
-
-const valorTotalSolicitado = computed(() => {
-  let val = 0;
-  solicitacoes.value.forEach(s => {
-    s.itens.forEach(i => {
-      val += i.quantidade_solicitada * getMaterialPrice(i.nome_material);
+  // Filter by Unit Functional
+  if (filtroUnidade.value !== 'todas') {
+    list = list.filter(s => {
+      if (!s.leito) return false;
+      return s.leito.toLowerCase().includes(filtroUnidade.value.toLowerCase());
     });
-  });
-  return val || 250450;
-});
+  }
 
-const valorTotalAutorizado = computed(() => {
-  let val = 0;
-  solicitacoes.value.forEach(s => {
-    s.itens.forEach(i => {
-      const qty = i.quantidade_autorizada !== null && i.quantidade_autorizada !== undefined ? i.quantidade_autorizada : i.quantidade_solicitada;
-      if (s.status !== 'NEGADO') {
-        val += qty * getMaterialPrice(i.nome_material);
+  // Filter by Period
+  if (filtroPeriodo.value !== 'todos') {
+    const now = new Date();
+    list = list.filter(s => {
+      if (!s.created_at) return false;
+      const date = new Date(s.created_at);
+      if (filtroPeriodo.value === '7d') {
+        const diffTime = Math.abs(now.getTime() - date.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays <= 7;
       }
+      if (filtroPeriodo.value === '30d') {
+        const diffTime = Math.abs(now.getTime() - date.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays <= 30;
+      }
+      if (filtroPeriodo.value === 'mes') {
+        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+      }
+      return true;
     });
-  });
-  return val || 180230;
+  }
+
+  return list;
 });
 
-const economiaGerada = computed(() => {
-  const diff = valorTotalSolicitado.value - valorTotalAutorizado.value;
-  return diff > 0 ? diff : 70220;
-});
+// Tab 1: General Computations
+const totalCount = computed(() => filteredSolicitacoes.value.length || 1); // Avoid division by zero
+const autorizadasCount = computed(() => filteredSolicitacoes.value.filter(s => s.status === 'AUTORIZADO' || s.status === 'LIBERADO' || s.status === 'ENTREGUE').length);
+const negadasCount = computed(() => filteredSolicitacoes.value.filter(s => s.status === 'NEGADO').length);
+const emAnaliseCount = computed(() => filteredSolicitacoes.value.filter(s => s.status === 'EM ANÁLISE').length);
+const pendentesCount = computed(() => filteredSolicitacoes.value.filter(s => s.status === 'PENDENTE').length);
+const liberadasCount = computed(() => filteredSolicitacoes.value.filter(s => s.status === 'LIBERADO' || s.status === 'ENTREGUE').length);
 
-const economiaPct = computed(() => Math.round((economiaGerada.value / valorTotalSolicitado.value) * 100) || 28);
+const pctAutorizadas = computed(() => Math.round((autorizadasCount.value / totalCount.value) * 100) || 0);
+const pctNegadas = computed(() => Math.round((negadasCount.value / totalCount.value) * 100) || 0);
+const pctEmAnalise = computed(() => Math.round((emAnaliseCount.value / totalCount.value) * 100) || 0);
+const pctLiberadas = computed(() => Math.round((liberadasCount.value / totalCount.value) * 100) || 0);
 
 const tempoMedioResposta = ref('18h 42m');
 const tempoMedioFarmacia = ref('3h 15m');
@@ -509,7 +519,7 @@ const tempoMedioFarmacia = ref('3h 15m');
 // Top Materials Computation
 const topMaterials = computed(() => {
   const counts: Record<string, number> = {};
-  solicitacoes.value.forEach(s => {
+  filteredSolicitacoes.value.forEach(s => {
     s.itens.forEach(i => {
       counts[i.nome_material] = (counts[i.nome_material] || 0) + i.quantidade_solicitada;
     });
@@ -560,14 +570,14 @@ const loadingTrace = ref(false);
 
 const traceSolicitacao = computed(() => {
   if (!searchQuery.value.trim()) {
-    return solicitacoes.value[0] || null;
+    return filteredSolicitacoes.value[0] || null;
   }
   const query = searchQuery.value.toLowerCase();
-  return solicitacoes.value.find(s => 
+  return filteredSolicitacoes.value.find(s => 
     s.nome_paciente.toLowerCase().includes(query) || 
     s.prontuario.toString().includes(query) ||
     (s.id && `cciras-2024-001${s.id}`.toLowerCase().includes(query))
-  ) || solicitacoes.value[0] || null;
+  ) || filteredSolicitacoes.value[0] || null;
 });
 
 
@@ -623,7 +633,24 @@ const actionHistory = computed(() => {
   return history;
 });
 
-const formatarMoeda = (val: number) => {
-  return val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const exportarImpressao = () => {
+  window.print();
 };
 </script>
+
+<style scoped>
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  /* Remove layout container padding, backgrounds, and shadows for printing */
+  .space-y-6, .grid, .bg-white, .border {
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background-color: transparent !important;
+  }
+}
+</style>
