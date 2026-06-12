@@ -12,54 +12,95 @@
     </div>
   </div>
 
-  <div v-else class="w-full max-w-md">
-    <Card>
-      <template #header>
-        <h1 class="text-xl font-semibold text-center">Login</h1>
-      </template>
-      <form @submit.prevent="handleLogin">
-        <div class="mb-4">
-          <label class="block text-sm font-bold mb-2" for="username">
-            Usuário
-          </label>
-          <input v-model="username" class="shadow-inner appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" id="username" type="text" placeholder="E.g., EBSERHNET\\user">
+  <div v-else class="w-full h-screen flex items-center justify-center bg-slate-100 p-2 md:p-6 overflow-hidden">
+    <!-- Responsive Image Overlay wrapper maintaining image aspect ratio -->
+    <div class="relative w-full max-w-[1280px] aspect-[1280/876] bg-cover bg-no-repeat bg-center shadow-2xl rounded-3xl overflow-hidden" style="background-image: url('/telalogin.png')">
+      
+      <!-- Form with absolute layout mapping the input fields exactly -->
+      <form @submit.prevent="handleLogin" class="absolute inset-0">
+        
+        <!-- User field overlay with real interactive styling -->
+        <div class="absolute" style="left: 7.2%; top: 46.8%; width: 31.0%; height: 5.8%;">
+          <div class="relative w-full h-full flex items-center">
+            <span class="absolute left-4 text-[#009688]">
+              <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </span>
+            <input 
+              v-model="username" 
+              type="text" 
+              placeholder="Usuário"
+              class="w-full h-full bg-white border border-[#d1dbf0] rounded-xl pl-12 pr-4 text-slate-800 placeholder-[#94a3b8] focus:border-[#103F8A] focus:outline-none transition-colors font-semibold text-sm md:text-base"
+              id="username"
+              autocomplete="username"
+              required
+            >
+          </div>
         </div>
-        <div class="mb-6">
-          <label class="block text-sm font-bold mb-2" for="password">
-            Senha
-          </label>
-          <div class="relative">
-            <input v-model="password" class="shadow-inner appearance-none border rounded w-full py-2 px-3 pr-10 leading-tight focus:outline-none focus:shadow-outline" id="password" :type="passwordFieldType" placeholder="******************">
-            <button type="button" @click="togglePasswordVisibility" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500">
-              <component :is="passwordFieldType === 'password' ? EyeIcon : EyeSlashIcon" class="h-5 w-5" />
+
+        <!-- Password field overlay with real interactive styling -->
+        <div class="absolute" style="left: 7.2%; top: 54.4%; width: 31.0%; height: 5.8%;">
+          <div class="relative w-full h-full flex items-center">
+            <span class="absolute left-4 text-[#009688]">
+              <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </span>
+            <input 
+              v-model="password" 
+              :type="passwordFieldType" 
+              placeholder="Senha"
+              class="w-full h-full bg-white border border-[#d1dbf0] rounded-xl pl-12 pr-12 text-slate-800 placeholder-[#94a3b8] focus:border-[#103F8A] focus:outline-none transition-colors font-semibold text-sm md:text-base"
+              id="password"
+              autocomplete="current-password"
+              required
+            >
+            <button 
+              type="button" 
+              @click="togglePasswordVisibility" 
+              class="absolute right-4 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer flex items-center"
+            >
+              <component :is="passwordFieldType === 'password' ? EyeIcon : EyeSlashIcon" class="h-5 w-5 md:h-6 md:w-6" />
             </button>
           </div>
         </div>
-        <div class="mb-6">
-          <label class="flex items-center">
-            <input type="checkbox" v-model="rememberMe" class="form-checkbox h-5 w-5 text-orange-600">
-            <span class="ml-2 text-sm">Lembrar de mim</span>
+
+        <!-- Checkbox overlay -->
+        <div class="absolute flex items-center gap-2" style="left: 7.2%; top: 62.1%; width: 31.0%; height: 3.5%;">
+          <input 
+            v-model="rememberMe" 
+            type="checkbox" 
+            id="rememberMe"
+            class="w-4 h-4 md:w-5 md:h-5 rounded border-[#d1dbf0] text-[#103F8A] focus:ring-[#103F8A] cursor-pointer"
+          >
+          <label for="rememberMe" class="text-xs md:text-sm text-[#64748b] font-semibold cursor-pointer select-none">
+            Lembrar de mim
           </label>
         </div>
-        <div class="flex items-center justify-center space-x-4">
-          <Button type="button" variant="secondary" @click="clearForm" class="w-1/2 bg-gray-500 hover:bg-gray-600">
-            <template #icon>
-              <XCircleIcon class="h-5 w-5" />
-            </template>
-            Limpar
-          </Button>
-          <Button type="submit" variant="primary" :disabled="loading" class="w-1/2">
-            <template #icon>
-              <ArrowRightOnRectangleIcon class="h-5 w-5" />
-            </template>
+
+        <!-- Submit Button Overlay -->
+        <div class="absolute" style="left: 7.2%; top: 67.0%; width: 31.0%; height: 5.8%;">
+          <button 
+            type="submit" 
+            :disabled="loading" 
+            class="w-full h-full rounded-xl bg-[#103F8A] hover:bg-[#0c316c] text-white font-bold cursor-pointer transition-all active:scale-[0.98] flex items-center justify-center text-sm md:text-base shadow-sm"
+          >
             Entrar
-          </Button>
+          </button>
         </div>
+
       </form>
-    </Card>
-    <div v-if="error" class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-      <strong class="font-bold">Erro: </strong>
-      <span class="block sm:inline">{{ error }}</span>
+
+      <!-- Error Toast (Floating Bottom-Left) -->
+      <div 
+        v-if="error" 
+        class="absolute bottom-6 left-6 max-w-sm bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-2xl shadow-xl flex items-start gap-2 animate-fade-in z-30"
+      >
+        <strong class="font-bold text-sm">Erro:</strong>
+        <span class="text-sm font-medium">{{ error }}</span>
+      </div>
+
     </div>
   </div>
 </template>
@@ -68,9 +109,7 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
-import Card from '../components/Card.vue';
-import Button from '../components/Button.vue';
-import { ArrowRightOnRectangleIcon, EyeIcon, EyeSlashIcon, XCircleIcon } from '@heroicons/vue/24/outline';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline';
 
 const username = ref('');
 const password = ref('');
@@ -87,13 +126,6 @@ const passwordFieldType = computed(() => passwordVisible.value ? 'text' : 'passw
 
 const togglePasswordVisibility = () => {
   passwordVisible.value = !passwordVisible.value;
-};
-
-const clearForm = () => {
-  username.value = '';
-  password.value = '';
-  rememberMe.value = false;
-  error.value = '';
 };
 
 const handleLogin = async () => {
