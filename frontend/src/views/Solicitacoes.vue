@@ -210,6 +210,9 @@
                   <label class="block text-xs font-semibold text-slate-500 mb-1">Qtd Autorizada</label>
                   <input type="number" v-model.number="item.quantidade_autorizada" min="0" :max="item.quantidade_solicitada" class="border rounded-xl p-1.5 w-24 text-center font-bold">
                 </div>
+                <button type="button" @click="marcarComoEmFalta(item)" class="self-end mb-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-xl text-xs font-bold transition duration-150 cursor-pointer">
+                  Em falta
+                </button>
               </div>
 
               <!-- Controle de Qtd para Farmácia -->
@@ -222,6 +225,9 @@
                   <label class="block text-xs font-semibold text-slate-500 mb-1">Qtd Liberada</label>
                   <input type="number" v-model.number="item.quantidade_liberada" min="0" :max="item.quantidade_autorizada" class="border rounded-xl p-1.5 w-24 text-center font-bold">
                 </div>
+                <button type="button" @click="marcarComoEmFalta(item)" class="self-end mb-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-xl text-xs font-bold transition duration-150 cursor-pointer">
+                  Em falta
+                </button>
               </div>
             </div>
           </div>
@@ -473,7 +479,19 @@ const abrirAcoes = (sol: SolicitacaoCobertura) => {
 // CCIRAS Decision Submission
 const submeterDecisaoCciras = async (statusGeral: string) => {
   if (!solicitacaoSelecionada.value?.id) return;
-  if (!parecerCciras.value.trim()) {
+
+  const originalItens = solicitacaoSelecionada.value.itens || [];
+  const alterouQuantidade = itensEdicao.value.some(item => {
+    const originalItem = originalItens.find(o => o.id === item.id);
+    const originalQtd = originalItem 
+      ? (originalItem.quantidade_autorizada !== null && originalItem.quantidade_autorizada !== undefined ? originalItem.quantidade_autorizada : originalItem.quantidade_solicitada)
+      : item.quantidade_solicitada;
+    return item.quantidade_autorizada !== originalQtd;
+  });
+
+  const precisaParecer = statusGeral === 'NEGADO' || statusGeral === 'EM ANÁLISE' || alterouQuantidade;
+
+  if (precisaParecer && !parecerCciras.value.trim()) {
     toast.warning('Por favor, registre a justificativa técnica/parecer da CCIRAS.');
     return;
   }
@@ -489,7 +507,15 @@ const submeterDecisaoCciras = async (statusGeral: string) => {
       }))
     };
     await SolicitacoesService.auditar(solicitacaoSelecionada.value.id, payload);
-    toast.success('Parecer da CCIRAS enviado com sucesso!');
+    
+    if (statusGeral === 'LIBERADO') {
+      toast.success('liberado com sucesso');
+    } else if (statusGeral === 'AUTORIZADO') {
+      toast.success('autorizado com sucesso');
+    } else {
+      toast.success('Parecer da CCIRAS enviado com sucesso!');
+    }
+    
     showDetalhesModal.value = false;
     await carregarSolicitacoes();
   } catch (e) {
@@ -520,6 +546,26 @@ const submeterDecisaoFarmacia = async (statusGeral: string) => {
     await carregarSolicitacoes();
   } catch (e) {
     toast.error('Falha ao registrar a liberação da Farmácia.');
+  }
+};
+
+const marcarComoEmFalta = (item: any) => {
+  if (isCciras.value) {
+    item.quantidade_autorizada = 0;
+    const msg = `${item.nome_material} em falta`;
+    if (!parecerCciras.value.trim()) {
+      parecerCciras.value = msg;
+    } else if (!parecerCciras.value.includes(msg)) {
+      parecerCciras.value += `\n${msg}`;
+    }
+  } else {
+    item.quantidade_liberada = 0;
+    const msg = `${item.nome_material} em falta`;
+    if (!parecerFarmacia.value.trim()) {
+      parecerFarmacia.value = msg;
+    } else if (!parecerFarmacia.value.includes(msg)) {
+      parecerFarmacia.value += `\n${msg}`;
+    }
   }
 };
 
