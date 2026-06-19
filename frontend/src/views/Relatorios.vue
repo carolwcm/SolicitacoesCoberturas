@@ -29,17 +29,39 @@
     <div class="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-100 no-print">
       <div class="flex flex-wrap items-center gap-4 w-full md:w-auto">
         <!-- Period Filter -->
-        <div class="flex flex-col">
-          <label class="text-xs font-bold text-slate-400 uppercase mb-1">Período</label>
-          <select 
-            v-model="filtroPeriodo" 
-            class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 font-semibold focus:outline-none focus:border-indigo-650 cursor-pointer min-w-[150px]"
-          >
-            <option value="todos">Todos</option>
-            <option value="7d">Últimos 7 dias</option>
-            <option value="30d">Últimos 30 dias</option>
-            <option value="mes">Mês atual</option>
-          </select>
+        <div class="flex items-end gap-2 flex-wrap">
+          <div class="flex flex-col">
+            <label class="text-xs font-bold text-slate-400 uppercase mb-1">Período</label>
+            <select 
+              v-model="filtroPeriodo" 
+              class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 font-semibold focus:outline-none focus:border-indigo-650 cursor-pointer min-w-[150px]"
+            >
+              <option value="todos">Todos</option>
+              <option value="7d">Últimos 7 dias</option>
+              <option value="30d">Últimos 30 dias</option>
+              <option value="mes">Mês atual</option>
+              <option value="personalizado">Personalizado</option>
+            </select>
+          </div>
+
+          <div v-if="filtroPeriodo === 'personalizado'" class="flex items-center gap-2 flex-wrap">
+            <div class="flex flex-col">
+              <label class="text-xs font-bold text-slate-400 uppercase mb-1">Início</label>
+              <input 
+                v-model="dataInicial" 
+                type="date" 
+                class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-sm text-slate-750 font-semibold focus:outline-none focus:border-indigo-650 cursor-pointer animate-fade-in"
+              >
+            </div>
+            <div class="flex flex-col">
+              <label class="text-xs font-bold text-slate-400 uppercase mb-1">Fim</label>
+              <input 
+                v-model="dataFinal" 
+                type="date" 
+                class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-sm text-slate-750 font-semibold focus:outline-none focus:border-indigo-650 cursor-pointer animate-fade-in"
+              >
+            </div>
+          </div>
         </div>
 
         <!-- Unit Filter -->
@@ -61,17 +83,51 @@
         </div>
       </div>
 
-      <!-- Export to Print Button -->
-      <div>
+      <!-- Export Button with Dropdown -->
+      <div class="relative">
         <button 
-          @click="exportarImpressao"
-          class="flex items-center gap-2 bg-indigo-650 hover:bg-indigo-700 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all shadow-sm cursor-pointer"
+          @click="toggleExportDropdown"
+          class="flex items-center gap-2 bg-[#009688] hover:bg-[#00796B] text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all shadow-sm cursor-pointer"
         >
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
-          <span>Exportar para Impressão</span>
+          <span>Exportar</span>
         </button>
+
+        <!-- Backdrop to close dropdown -->
+        <div v-if="showExportDropdown" @click="showExportDropdown = false" class="fixed inset-0 z-20 bg-transparent no-print"></div>
+
+        <!-- Dropdown Menu -->
+        <div v-if="showExportDropdown" class="absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-xl z-30 py-1 no-print">
+          <button 
+            @click="acaoExportar('print')"
+            class="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 font-semibold cursor-pointer"
+          >
+            <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Imprimir
+          </button>
+          <button 
+            @click="acaoExportar('pdf')"
+            class="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 font-semibold cursor-pointer"
+          >
+            <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            Exportar para .pdf
+          </button>
+          <button 
+            @click="acaoExportar('csv')"
+            class="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 font-semibold cursor-pointer"
+          >
+            <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Exportar para .csv
+          </button>
+        </div>
       </div>
     </div>
 
@@ -160,22 +216,51 @@
       <!-- Charts Section -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Chart 1: Line Chart (Monthly Requests) -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+        <!-- Chart 1: Line Chart (Monthly Requests) -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <h3 class="text-sm font-bold text-slate-700 mb-4">Solicitações por mês</h3>
-          <div class="h-64 flex items-end justify-between px-2 pt-6 relative border-l border-b border-slate-100">
-            <!-- Simulated SVG Line Graph for aesthetic appeal -->
-            <svg class="absolute inset-0 h-full w-full p-6" viewBox="0 0 100 100" preserveAspectRatio="none">
-              <path d="M 0 80 Q 20 40 40 60 T 80 10 T 100 30" fill="none" stroke="rgb(79, 70, 229)" stroke-width="3" />
-              <circle cx="20" cy="50" r="3" fill="rgb(79, 70, 229)" />
-              <circle cx="40" cy="55" r="3" fill="rgb(79, 70, 229)" />
-              <circle cx="60" cy="30" r="3" fill="rgb(79, 70, 229)" />
-              <circle cx="80" cy="10" r="3" fill="rgb(79, 70, 229)" />
+          <div class="h-64 relative border-l border-b border-slate-100 w-full mt-4 flex items-end justify-between px-2 pt-6">
+            <!-- Dynamic SVG Line Graph -->
+            <svg class="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <!-- Gradient definition -->
+              <defs>
+                <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="rgba(0, 150, 136, 0.3)" />
+                  <stop offset="100%" stop-color="rgba(0, 150, 136, 0)" />
+                </linearGradient>
+              </defs>
+              <!-- Grid lines for clean look -->
+              <line x1="10" y1="20" x2="90" y2="20" stroke="#f1f5f9" stroke-width="0.5" stroke-dasharray="2" />
+              <line x1="10" y1="45" x2="90" y2="45" stroke="#f1f5f9" stroke-width="0.5" stroke-dasharray="2" />
+              <line x1="10" y1="70" x2="90" y2="70" stroke="#f1f5f9" stroke-width="0.5" stroke-dasharray="2" />
+              
+              <!-- Area under curve -->
+              <path :d="areaPathD" fill="url(#chartGradient)" />
+              <!-- Path line -->
+              <path :d="pathD" fill="none" stroke="#009688" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              <!-- Circles for each point -->
+              <circle v-for="pt in pontosGrafico" :key="'c-' + pt.label" :cx="pt.x" :cy="pt.y" r="2" fill="#009688" stroke="white" stroke-width="0.5" />
             </svg>
-            <div class="text-[10px] text-slate-400 absolute bottom-1 left-4">Jan</div>
-            <div class="text-[10px] text-slate-400 absolute bottom-1 left-1/4">Fev</div>
-            <div class="text-[10px] text-slate-400 absolute bottom-1 left-2/4">Mar</div>
-            <div class="text-[10px] text-slate-400 absolute bottom-1 left-3/4">Abr</div>
-            <div class="text-[10px] text-slate-400 absolute bottom-1 right-4">Mai</div>
+            
+            <!-- Monthly label overlays -->
+            <div 
+              v-for="pt in pontosGrafico" 
+              :key="'l-' + pt.label" 
+              class="text-[10px] text-slate-400 absolute bottom-1 font-semibold animate-fade-in" 
+              :style="{ left: `${pt.x}%`, transform: 'translateX(-50%)' }"
+            >
+              {{ pt.label }}
+            </div>
+            
+            <!-- Value badge overlays -->
+            <div 
+              v-for="pt in pontosGrafico" 
+              :key="'b-' + pt.label" 
+              class="absolute text-[9px] font-bold bg-[#009688] text-white px-1.5 py-0.5 rounded shadow-sm no-print transition-all duration-300"
+              :style="{ left: `${pt.x}%`, top: `calc(${pt.y}% - 14px)`, transform: 'translateX(-50%)' }"
+            >
+              {{ pt.count }}
+            </div>
           </div>
         </div>
 
@@ -185,12 +270,12 @@
           <div class="flex items-center justify-around flex-1">
             <!-- SVG Donut Chart -->
             <div class="relative w-36 h-36">
-              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
                 <!-- Outer circle representing different slices -->
-                <circle class="text-slate-100" stroke="currentColor" stroke-width="4" fill="none" cx="18" cy="18" r="15.915" />
-                <circle class="text-emerald-500" :stroke-dasharray="`${pctAutorizadas} ${100 - pctAutorizadas}`" stroke-dashoffset="0" stroke="currentColor" stroke-width="4.5" fill="none" cx="18" cy="18" r="15.915" />
-                <circle class="text-rose-500" :stroke-dasharray="`${pctNegadas} ${100 - pctNegadas}`" :stroke-dashoffset="`-${pctAutorizadas}`" stroke="currentColor" stroke-width="4.5" fill="none" cx="18" cy="18" r="15.915" />
-                <circle class="text-indigo-500" :stroke-dasharray="`${pctEmAnalise} ${100 - pctEmAnalise}`" :stroke-dashoffset="`-${pctAutorizadas + pctNegadas}`" stroke="currentColor" stroke-width="4.5" fill="none" cx="18" cy="18" r="15.915" />
+                <circle class="text-slate-100" stroke="currentColor" stroke-width="4" fill="none" cx="20" cy="20" r="15.915" />
+                <circle class="text-emerald-500" :stroke-dasharray="`${pctAutorizadas} ${100 - pctAutorizadas}`" stroke-dashoffset="0" stroke="currentColor" stroke-width="4.5" fill="none" cx="20" cy="20" r="15.915" />
+                <circle class="text-rose-500" :stroke-dasharray="`${pctNegadas} ${100 - pctNegadas}`" :stroke-dashoffset="`-${pctAutorizadas}`" stroke="currentColor" stroke-width="4.5" fill="none" cx="20" cy="20" r="15.915" />
+                <circle class="text-indigo-500" :stroke-dasharray="`${pctEmAnalise} ${100 - pctEmAnalise}`" :stroke-dashoffset="`-${pctAutorizadas + pctNegadas}`" stroke="currentColor" stroke-width="4.5" fill="none" cx="20" cy="20" r="15.915" />
               </svg>
               <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
                 <span class="text-2xl font-black text-slate-800">{{ totalCount }}</span>
@@ -277,34 +362,36 @@
       <!-- SLA Details -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- SLA Distribution chart -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col h-full justify-between">
           <h3 class="text-sm font-bold text-slate-700 mb-4">SLA das solicitações (tempo de avaliação)</h3>
-          <div class="flex items-center justify-around h-60">
+          <div class="flex-1 flex items-center justify-around py-4">
             <!-- Pie/Donut SLA -->
-            <div class="relative w-36 h-36">
-              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                <circle class="text-slate-100" stroke="currentColor" stroke-width="6" fill="none" cx="18" cy="18" r="15.915" />
-                <circle class="text-indigo-600" :stroke-dasharray="`${slaRanges.ok} ${100 - slaRanges.ok}`" stroke="currentColor" stroke-width="6" fill="none" cx="18" cy="18" r="15.915" />
-                <circle class="text-emerald-500" :stroke-dasharray="`${slaRanges.warning} ${100 - slaRanges.warning}`" :stroke-dashoffset="`-${slaRanges.ok}`" stroke="currentColor" stroke-width="6" fill="none" cx="18" cy="18" r="15.915" />
-                <circle class="text-amber-500" :stroke-dasharray="`${slaRanges.late} ${100 - slaRanges.late}`" :stroke-dashoffset="`-${slaRanges.ok + slaRanges.warning}`" stroke="currentColor" stroke-width="6" fill="none" cx="18" cy="18" r="15.915" />
-                <circle class="text-rose-500" :stroke-dasharray="`${slaRanges.veryLate} ${100 - slaRanges.veryLate}`" :stroke-dashoffset="`-${slaRanges.ok + slaRanges.warning + slaRanges.late}`" stroke="currentColor" stroke-width="6" fill="none" cx="18" cy="18" r="15.915" />
+            <div class="relative w-36 h-36 shrink-0">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
+                <circle class="text-slate-100" stroke="currentColor" stroke-width="6" fill="none" cx="20" cy="20" r="15.915" />
+                <circle class="text-indigo-600" :stroke-dasharray="`${slaRanges.ok} ${100 - slaRanges.ok}`" stroke="currentColor" stroke-width="6" fill="none" cx="20" cy="20" r="15.915" />
+                <circle class="text-emerald-500" :stroke-dasharray="`${slaRanges.warning} ${100 - slaRanges.warning}`" :stroke-dashoffset="`-${slaRanges.ok}`" stroke="currentColor" stroke-width="6" fill="none" cx="20" cy="20" r="15.915" />
+                <circle class="text-amber-500" :stroke-dasharray="`${slaRanges.late} ${100 - slaRanges.late}`" :stroke-dashoffset="`-${slaRanges.ok + slaRanges.warning}`" stroke="currentColor" stroke-width="6" fill="none" cx="20" cy="20" r="15.915" />
+                <circle class="text-rose-500" :stroke-dasharray="`${slaRanges.veryLate} ${100 - slaRanges.veryLate}`" :stroke-dashoffset="`-${slaRanges.ok + slaRanges.warning + slaRanges.late}`" stroke="currentColor" stroke-width="6" fill="none" cx="20" cy="20" r="15.915" />
               </svg>
               <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span class="text-2xl font-black text-slate-800">{{ totalCount }}</span>
-                <span class="text-[9px] font-bold text-slate-400 uppercase">Avaliações</span>
+                <span class="text-2xl font-black text-slate-800">{{ filteredSolicitacoes.length }}</span>
+                <span class="text-[9px] font-bold text-slate-400 uppercase">
+                  {{ filteredSolicitacoes.length === 1 ? 'Avaliação' : 'Avaliações' }}
+                </span>
               </div>
             </div>
-            <div class="space-y-2 text-xs">
-              <div class="flex items-center"><span class="w-3 h-3 bg-indigo-600 rounded-full mr-2"></span> Até 24h</div>
-              <div class="flex items-center"><span class="w-3 h-3 bg-emerald-500 rounded-full mr-2"></span> 24h - 48h</div>
-              <div class="flex items-center"><span class="w-3 h-3 bg-amber-500 rounded-full mr-2"></span> 48h - 72h</div>
-              <div class="flex items-center"><span class="w-3 h-3 bg-rose-500 rounded-full mr-2"></span> > 72h</div>
+            <div class="space-y-3 text-xs ml-4 font-semibold text-slate-600">
+              <div class="flex items-center"><span class="w-3.5 h-3.5 bg-indigo-600 rounded-full mr-2.5"></span> Até 24h</div>
+              <div class="flex items-center"><span class="w-3.5 h-3.5 bg-emerald-500 rounded-full mr-2.5"></span> 24h - 48h</div>
+              <div class="flex items-center"><span class="w-3.5 h-3.5 bg-amber-500 rounded-full mr-2.5"></span> 48h - 72h</div>
+              <div class="flex items-center"><span class="w-3.5 h-3.5 bg-rose-500 rounded-full mr-2.5"></span> > 72h</div>
             </div>
           </div>
         </div>
 
         <!-- SLA by unit table -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col h-full justify-between">
           <h3 class="text-sm font-bold text-slate-700 mb-4">Tempo médio de avaliação por unidade</h3>
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-slate-100 text-sm">
@@ -438,6 +525,8 @@ const solicitacoes = ref<SolicitacaoCobertura[]>([]);
 
 // Filters
 const filtroPeriodo = ref('todos');
+const dataInicial = ref('');
+const dataFinal = ref('');
 const filtroUnidade = ref('todas');
 
 const tabs = [
@@ -493,6 +582,17 @@ const filteredSolicitacoes = computed(() => {
       if (filtroPeriodo.value === 'mes') {
         return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
       }
+      if (filtroPeriodo.value === 'personalizado') {
+        if (dataInicial.value) {
+          const start = new Date(dataInicial.value + 'T00:00:00');
+          if (date < start) return false;
+        }
+        if (dataFinal.value) {
+          const end = new Date(dataFinal.value + 'T23:59:59');
+          if (date > end) return false;
+        }
+        return true;
+      }
       return true;
     });
   }
@@ -513,8 +613,43 @@ const pctNegadas = computed(() => Math.round((negadasCount.value / totalCount.va
 const pctEmAnalise = computed(() => Math.round((emAnaliseCount.value / totalCount.value) * 100) || 0);
 const pctLiberadas = computed(() => Math.round((liberadasCount.value / totalCount.value) * 100) || 0);
 
-const tempoMedioResposta = ref('18h 42m');
-const tempoMedioFarmacia = ref('3h 15m');
+const tempoMedioResposta = computed(() => {
+  const audited = filteredSolicitacoes.value.filter(s => s.created_at && s.data_auditoria);
+  if (audited.length === 0) return 'N/A';
+  
+  let totalMs = 0;
+  audited.forEach(s => {
+    const start = new Date(s.created_at!);
+    const end = new Date(s.data_auditoria!);
+    totalMs += Math.abs(end.getTime() - start.getTime());
+  });
+  
+  const avgMs = totalMs / audited.length;
+  const avgMinutes = Math.floor(avgMs / (1000 * 60));
+  const hours = Math.floor(avgMinutes / 60);
+  const minutes = avgMinutes % 60;
+  
+  return `${hours}h ${minutes}m`;
+});
+
+const tempoMedioFarmacia = computed(() => {
+  const delivered = filteredSolicitacoes.value.filter(s => s.data_auditoria && s.data_entrega);
+  if (delivered.length === 0) return 'N/A';
+  
+  let totalMs = 0;
+  delivered.forEach(s => {
+    const start = new Date(s.data_auditoria!);
+    const end = new Date(s.data_entrega!);
+    totalMs += Math.abs(end.getTime() - start.getTime());
+  });
+  
+  const avgMs = totalMs / delivered.length;
+  const avgMinutes = Math.floor(avgMs / (1000 * 60));
+  const hours = Math.floor(avgMinutes / 60);
+  const minutes = avgMinutes % 60;
+  
+  return `${hours}h ${minutes}m`;
+});
 
 // Top Materials Computation
 const topMaterials = computed(() => {
@@ -545,24 +680,191 @@ const maxMaterialCount = computed(() => {
   return max || 1;
 });
 
-// Tab 2: Quality SLA Computations
-const pctAprovacao = computed(() => Math.round((autorizadasCount.value / (autorizadasCount.value + negadasCount.value || 1)) * 100) || 75);
-const pctRetrabalho = ref(6.2);
-
-const slaRanges = ref({
-  ok: 53.1,
-  warning: 25.0,
-  late: 11.7,
-  veryLate: 10.2
+// Gráfico de Solicitações por Mês
+const mesesGrafico = computed(() => {
+  const months = [];
+  const now = new Date();
+  // Gerar os últimos 6 meses cronologicamente
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      year: d.getFullYear(),
+      month: d.getMonth(),
+      name: d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase()
+    });
+  }
+  return months;
 });
 
-const slaUnits = ref([
-  { name: 'UTI Adulto', time: '14h 22m', status: 'SLA OK', badgeClass: 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200' },
-  { name: 'Clínica Médica', time: '16h 10m', status: 'SLA OK', badgeClass: 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200' },
-  { name: 'Clínica Cirúrgica', time: '19h 45m', status: 'SLA OK', badgeClass: 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200' },
-  { name: 'Emergência', time: '22h 30m', status: 'Atenção', badgeClass: 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200' },
-  { name: 'Ortopedia', time: '25h 05m', status: 'SLA Estourado', badgeClass: 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200' }
-]);
+const contagemPorMes = computed(() => {
+  const months = mesesGrafico.value;
+  return months.map(m => {
+    const count = filteredSolicitacoes.value.filter(s => {
+      if (!s.created_at) return false;
+      const d = new Date(s.created_at);
+      return d.getFullYear() === m.year && d.getMonth() === m.month;
+    }).length;
+    return { ...m, count };
+  });
+});
+
+const pontosGrafico = computed(() => {
+  const data = contagemPorMes.value;
+  const maxCount = Math.max(...data.map(d => d.count)) || 1;
+  
+  return data.map((d, index) => {
+    // Distribuir X de 10% a 90%
+    const x = 10 + (index / 5) * 80;
+    // Y vai de 70% (mínimo / zero) até 20% (máximo / topo)
+    const y = 70 - (d.count / maxCount) * 50;
+    return { x, y, count: d.count, label: d.name };
+  });
+});
+
+const pathD = computed(() => {
+  const pts = pontosGrafico.value;
+  if (pts.length === 0) return '';
+  return `M ${pts.map(p => `${p.x} ${p.y}`).join(' L ')}`;
+});
+
+const areaPathD = computed(() => {
+  const pts = pontosGrafico.value;
+  if (pts.length === 0) return '';
+  const first = pts[0];
+  const last = pts[pts.length - 1];
+  return `M ${first.x} 70 L ${pts.map(p => `${p.x} ${p.y}`).join(' L ')} L ${last.x} 70 Z`;
+});
+
+// Tab 2: Quality SLA Computations
+const pctAprovacao = computed(() => {
+  const total = autorizadasCount.value + negadasCount.value;
+  if (total === 0) return 0;
+  return Math.round((autorizadasCount.value / total) * 100);
+});
+const pctRetrabalho = computed(() => {
+  let totalItens = 0;
+  let itensAlterados = 0;
+  
+  filteredSolicitacoes.value.forEach(s => {
+    s.itens.forEach(i => {
+      totalItens++;
+      if (i.quantidade_autorizada !== undefined && i.quantidade_autorizada !== null && i.quantidade_autorizada !== i.quantidade_solicitada) {
+        itensAlterados++;
+      }
+    });
+  });
+  
+  if (totalItens === 0) return 0;
+  return Math.round((itensAlterados / totalItens) * 1000) / 10;
+});
+
+const slaRanges = computed(() => {
+  let ok = 0;
+  let warning = 0;
+  let late = 0;
+  let veryLate = 0;
+  
+  const total = filteredSolicitacoes.value.length;
+  if (total === 0) {
+    return { ok: 100, warning: 0, late: 0, veryLate: 0 };
+  }
+  
+  const now = new Date();
+  filteredSolicitacoes.value.forEach(s => {
+    if (!s.created_at) {
+      ok++;
+      return;
+    }
+    const start = new Date(s.created_at);
+    const end = s.data_auditoria ? new Date(s.data_auditoria) : now;
+    const diffHours = Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60);
+    
+    if (diffHours <= 24) {
+      ok++;
+    } else if (diffHours <= 48) {
+      warning++;
+    } else if (diffHours <= 72) {
+      late++;
+    } else {
+      veryLate++;
+    }
+  });
+  
+  return {
+    ok: Math.round((ok / total) * 100),
+    warning: Math.round((warning / total) * 100),
+    late: Math.round((late / total) * 100),
+    veryLate: Math.round((veryLate / total) * 100)
+  };
+});
+
+const slaUnits = computed(() => {
+  const units = [
+    'UTI Adulto',
+    'Clínica Médica',
+    'Clínica Cirúrgica',
+    'Emergência',
+    'Ortopedia',
+    'Pediatria',
+    'Oncologia'
+  ];
+  
+  const now = new Date();
+  
+  return units.map(unitName => {
+    const unitSols = filteredSolicitacoes.value.filter(s => 
+      s.leito && s.leito.toLowerCase().includes(unitName.toLowerCase())
+    );
+    
+    if (unitSols.length === 0) {
+      return {
+        name: unitName,
+        time: 'N/A',
+        status: 'Sem dados',
+        badgeClass: 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-50 text-slate-400 border border-slate-200'
+      };
+    }
+    
+    let totalMs = 0;
+    let count = 0;
+    unitSols.forEach(s => {
+      if (!s.created_at) return;
+      const start = new Date(s.created_at);
+      const end = s.data_auditoria ? new Date(s.data_auditoria) : now;
+      totalMs += Math.abs(end.getTime() - start.getTime());
+      count++;
+    });
+    
+    const avgMs = count > 0 ? totalMs / count : 0;
+    const avgHours = avgMs / (1000 * 60 * 60);
+    
+    let timeStr = '0h';
+    if (count > 0) {
+      const avgMinutes = Math.floor(avgMs / (1000 * 60));
+      const hours = Math.floor(avgMinutes / 60);
+      const minutes = avgMinutes % 60;
+      timeStr = `${hours}h ${minutes}m`;
+    }
+    
+    let status = 'SLA OK';
+    let badgeClass = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200';
+    
+    if (avgHours > 24) {
+      status = 'SLA Estourado';
+      badgeClass = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200';
+    } else if (avgHours > 18) {
+      status = 'Atenção';
+      badgeClass = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200';
+    }
+    
+    return {
+      name: unitName,
+      time: timeStr,
+      status,
+      badgeClass
+    };
+  });
+});
 
 // Tab 3: Timeline & Traceability Search
 const searchQuery = ref('');
@@ -633,8 +935,65 @@ const actionHistory = computed(() => {
   return history;
 });
 
-const exportarImpressao = () => {
-  window.print();
+const showExportDropdown = ref(false);
+
+const toggleExportDropdown = () => {
+  showExportDropdown.value = !showExportDropdown.value;
+};
+
+const exportarCSV = () => {
+  const data = filteredSolicitacoes.value;
+  if (!data || data.length === 0) return;
+  
+  const headers = [
+    'Data',
+    'Paciente',
+    'Prontuario',
+    'Leito',
+    'Solicitante',
+    'Status',
+    'Auditor',
+    'Justificativa',
+    'Farmaceutico',
+    'Parecer Farmacia'
+  ];
+  
+  const rows = data.map(s => [
+    new Date(s.created_at || '').toLocaleDateString('pt-BR'),
+    s.nome_paciente,
+    s.prontuario,
+    s.leito || '',
+    s.solicitante,
+    s.status || '',
+    s.auditor_username || '',
+    s.justificativa || '',
+    s.farmaceutico_username || '',
+    s.parecer_farmacia || ''
+  ]);
+  
+  const csvContent = [
+    headers.join(';'),
+    ...rows.map(r => r.map(val => `"${String(val).replace(/"/g, '""')}"`).join(';'))
+  ].join('\n');
+  
+  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `relatorio_solicitacoes_${new Date().toISOString().slice(0, 10)}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const acaoExportar = (tipo: 'print' | 'csv' | 'pdf') => {
+  showExportDropdown.value = false;
+  if (tipo === 'print' || tipo === 'pdf') {
+    window.print();
+  } else if (tipo === 'csv') {
+    exportarCSV();
+  }
 };
 </script>
 

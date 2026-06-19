@@ -48,8 +48,8 @@
           @click="modoExibicao = 'cciras'"
           :class="[
             modoExibicao === 'cciras' 
-              ? 'bg-indigo-650 text-white shadow-sm' 
-              : 'bg-transparent text-slate-650 hover:bg-slate-50',
+              ? 'bg-[#009688] text-white shadow-sm' 
+              : 'bg-transparent text-slate-600 hover:bg-slate-50',
             'py-2 px-4 rounded-xl text-sm font-bold transition-all duration-200 cursor-pointer text-center'
           ]"
         >
@@ -59,8 +59,8 @@
           @click="modoExibicao = 'farmacia'"
           :class="[
             modoExibicao === 'farmacia' 
-              ? 'bg-indigo-650 text-white shadow-sm' 
-              : 'bg-transparent text-slate-650 hover:bg-slate-50',
+              ? 'bg-[#009688] text-white shadow-sm' 
+              : 'bg-transparent text-slate-600 hover:bg-slate-50',
             'py-2 px-4 rounded-xl text-sm font-bold transition-all duration-200 cursor-pointer text-center'
           ]"
         >
@@ -247,18 +247,17 @@
 
       <!-- DECISION BUTTONS -->
       <template #footer>
-        <div class="flex flex-wrap gap-2 justify-end w-full">
+        <div class="flex flex-nowrap gap-1.5 justify-end w-full">
           <!-- CCIRAS Actions (4 buttons) -->
           <template v-if="isCciras">
-            <Button @click="submeterDecisaoCciras('EM ANÁLISE')" variant="default">Em Análise</Button>
-            <Button @click="submeterDecisaoCciras('NEGADO')" variant="danger">Negar</Button>
-            <Button @click="submeterDecisaoCciras('AUTORIZADO')" variant="primary">Autorizar</Button>
-            <Button @click="submeterDecisaoCciras('LIBERADO')" variant="success">Liberar</Button>
+            <Button @click="submeterDecisaoCciras('EM ANÁLISE')" class="!px-2.5 !py-1.5 !text-xs shrink-0" variant="default">Em Análise</Button>
+            <Button @click="submeterDecisaoCciras('NEGADO')" class="!px-2.5 !py-1.5 !text-xs shrink-0" variant="danger">Negar</Button>
+            <Button @click="submeterDecisaoCciras('AUTORIZADO')" class="!px-2.5 !py-1.5 !text-xs shrink-0" variant="primary">Autorizar</Button>
+            <Button @click="submeterDecisaoCciras('LIBERADO')" class="!px-2.5 !py-1.5 !text-xs shrink-0" variant="success">Entregue - Egresso</Button>
           </template>
 
-          <!-- Farmácia Actions (2 buttons) -->
+          <!-- Farmácia Actions -->
           <template v-else>
-            <Button @click="submeterDecisaoFarmacia('EM FALTA')" variant="danger">Em Falta</Button>
             <Button @click="submeterDecisaoFarmacia('LIBERADO')" variant="success">Liberar</Button>
           </template>
         </div>
@@ -390,13 +389,13 @@ const ccirasCards = computed(() => [
   { title: 'Em análise', value: emAnaliseCount.value, color: 'text-orange-500' },
   { title: 'Autorizadas', value: autorizadasCount.value, color: 'text-blue-600' },
   { title: 'Negadas', value: negadasCount.value, color: 'text-rose-600' },
-  { title: 'Liberadas', value: liberadasCount.value, color: 'text-emerald-600' }
+  { title: 'Entregue - Egresso', value: liberadasCount.value, color: 'text-emerald-600' }
 ]);
 
 const farmaciaCards = computed(() => [
   { title: 'Aguardando Liberação', value: aguardandoLibCount.value, color: 'text-yellow-600' },
   { title: 'Negadas', value: negadasCount.value, color: 'text-rose-600' },
-  { title: 'Liberadas', value: liberadasCount.value, color: 'text-emerald-600' },
+  { title: 'Entregue - Egresso', value: liberadasCount.value, color: 'text-emerald-600' },
   { title: 'Em análise', value: emAnaliseCount.value, color: 'text-orange-500' }
 ]);
 
@@ -509,7 +508,7 @@ const submeterDecisaoCciras = async (statusGeral: string) => {
     await SolicitacoesService.auditar(solicitacaoSelecionada.value.id, payload);
     
     if (statusGeral === 'LIBERADO') {
-      toast.success('liberado com sucesso');
+      toast.success('Entregue - Egresso registrado com sucesso!');
     } else if (statusGeral === 'AUTORIZADO') {
       toast.success('autorizado com sucesso');
     } else {
@@ -531,9 +530,14 @@ const submeterDecisaoFarmacia = async (statusGeral: string) => {
     return;
   }
 
+  // Se todos os itens autorizados estão com quantidade_liberada = 0, o status geral deve ser 'EM FALTA'
+  const itensAutorizados = itensEdicao.value.filter(i => i.status_item === 'AUTORIZADO');
+  const todosEmFalta = itensAutorizados.length > 0 && itensAutorizados.every(i => i.quantidade_liberada === 0);
+  const statusParaEnviar = todosEmFalta ? 'EM FALTA' : statusGeral;
+
   try {
     const payload = {
-      status_geral: statusGeral,
+      status_geral: statusParaEnviar,
       justificativa: parecerFarmacia.value,
       itens: itensEdicao.value.map(i => ({
         id: i.id!,

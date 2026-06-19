@@ -5,8 +5,8 @@
 
   --color-paper-bg: #f4f3ef;
   --color-paper-text: #66615b;
-  --color-paper-sidebar: #424242;
-  --color-paper-active-link: #5a5a5a; /* Light Gray for active link */
+  --color-paper-sidebar: #009688;
+  --color-paper-active-link: #00796B; /* Darker teal for active link */
 
   /* Default */
   --color-paper-default: #66615b;
