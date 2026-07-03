@@ -16,7 +16,17 @@
         class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
       >
         <div 
-          class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all flex flex-col max-h-[90vh]"
+          :class="[
+            'bg-white rounded-2xl shadow-2xl w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh]',
+            size === 'sm' ? 'max-w-sm' : '',
+            size === 'md' ? 'max-w-md' : '',
+            size === 'lg' ? 'max-w-lg' : '',
+            size === 'xl' ? 'max-w-xl' : '',
+            size === '2xl' ? 'max-w-2xl' : '',
+            size === '3xl' ? 'max-w-3xl' : '',
+            size === '4xl' ? 'max-w-4xl' : '',
+            size === '5xl' ? 'max-w-5xl' : '',
+          ]"
           @click.stop
         >
           <!-- Header -->
@@ -53,6 +63,7 @@ import { XMarkIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
   show: { type: Boolean, default: false },
+  size: { type: String, default: 'lg' }
 });
 
 const emit = defineEmits(['close']);

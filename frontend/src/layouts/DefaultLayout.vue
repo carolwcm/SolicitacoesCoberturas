@@ -52,7 +52,6 @@
 import { ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
-  ShieldCheckIcon,
   Bars3Icon,
   ClipboardDocumentCheckIcon,
   ChartBarIcon,

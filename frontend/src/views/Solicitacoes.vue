@@ -70,23 +70,46 @@
     </div>
 
     <!-- METRICS CARDS SECTION -->
-    <!-- CCIRAS Metrics -->
-    <div v-if="isCciras" class="grid grid-cols-2 md:grid-cols-6 gap-4">
-      <div v-for="card in ccirasCards" :key="card.title" class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow duration-200">
-        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">{{ card.title }}</span>
-        <span class="text-3xl font-extrabold mt-2" :class="card.color">{{ card.value }}</span>
-      </div>
-    </div>
-
-    <!-- Farmácia Metrics -->
-    <div v-else class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div v-for="card in farmaciaCards" :key="card.title" class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow duration-200">
-        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">{{ card.title }}</span>
+    <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-4">
+      <div 
+        v-for="card in metricCards" 
+        :key="card.filterKey" 
+        @click="selecionarFiltroCard(card.filterKey)"
+        :class="[
+          'p-5 rounded-2xl border shadow-sm flex flex-col justify-center items-center text-center hover:shadow-md transition-all duration-200 cursor-pointer select-none min-h-[130px]',
+          filtroCardAtivo === card.filterKey 
+            ? 'bg-indigo-50/70 border-indigo-300 ring-2 ring-indigo-500/20' 
+            : 'bg-white border-slate-100'
+        ]"
+      >
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500 block leading-tight">
+          {{ card.label }}
+          <span class="block mt-1">{{ card.sector }}</span>
+        </span>
         <span class="text-3xl font-extrabold mt-2" :class="card.color">{{ card.value }}</span>
       </div>
     </div>
 
     <!-- TABLE SECTION -->
+    <div class="flex justify-end no-print mb-4">
+      <div class="w-full md:max-w-md">
+        <label class="block text-sm font-bold text-slate-700 mb-2">Nº da RM ou Nome do Paciente</label>
+        <div class="relative">
+          <input 
+            v-model="searchQuery" 
+            type="text" 
+            placeholder="Ex: 1 ou João Silva"
+            class="w-full border border-slate-200 rounded-xl py-2.5 pl-4 pr-10 text-sm focus:outline-none focus:border-indigo-650 bg-white"
+          >
+          <button class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <Card>
       <template #header>
         <div class="flex justify-between items-center">
@@ -106,28 +129,33 @@
           <thead class="bg-slate-50">
             <!-- CCIRAS Headers -->
             <tr v-if="isCciras">
+              <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Nº da RM</th>
               <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Data</th>
               <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Paciente</th>
               <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Prontuário</th>
               <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Unidade Solicitante</th>
               <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Leito</th>
               <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Itens Solicitados</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Situação</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Situação CCIRAS</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Situação Farmácia</th>
               <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Ações</th>
             </tr>
             <!-- Farmacia Headers -->
             <tr v-else>
+              <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Nº da RM</th>
               <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Data</th>
               <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Paciente</th>
               <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Prontuário</th>
               <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Unidade Solicitante</th>
               <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Leito</th>
               <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Situação CCIRAS</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Situação Farmácia</th>
               <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Ações</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-slate-100">
             <tr v-for="sol in solicitacoesFiltradas" :key="sol.id" class="hover:bg-slate-50/50 transition-colors duration-150">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600 font-bold">#{{ sol.id }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600 font-medium">{{ formatarData(sol.created_at) }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800">{{ sol.nome_paciente }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{{ sol.prontuario }}</td>
@@ -141,10 +169,17 @@
                 </span>
               </td>
 
-              <!-- Status column -->
+              <!-- Situação CCIRAS -->
               <td class="px-6 py-4 whitespace-nowrap text-sm">
-                <span :class="getStatusBadgeClass(sol.status)">
-                  {{ sol.status }}
+                <span :class="getStatusBadgeClass(getSituacaoCciras(sol))">
+                  {{ getSituacaoCciras(sol) }}
+                </span>
+              </td>
+
+              <!-- Situação Farmácia -->
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <span :class="getStatusBadgeClass(getSituacaoFarmacia(sol))">
+                  {{ getSituacaoFarmacia(sol) }}
                 </span>
               </td>
 
@@ -164,7 +199,7 @@
     </Card>
 
     <!-- DETALHES MODAL (CCIRAS & FARMÁCIA) -->
-    <Modal :show="showDetalhesModal" @close="showDetalhesModal = false">
+    <Modal :show="showDetalhesModal" @close="showDetalhesModal = false" size="4xl">
       <template #header>
         Detalhes da Solicitação #{{ solicitacaoSelecionada?.id }}
       </template>
@@ -201,17 +236,20 @@
               </div>
 
               <!-- Controle de Qtd para CCIRAS -->
-              <div v-if="isCciras" class="flex items-center gap-4">
+              <div v-if="isCciras" class="flex items-center gap-2 md:gap-3">
                 <div>
                   <span class="text-xs text-slate-400 block mb-1">Solicitada</span>
                   <span class="text-sm font-bold text-slate-800">{{ item.quantidade_solicitada }}</span>
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-slate-500 mb-1">Qtd Autorizada</label>
-                  <input type="number" v-model.number="item.quantidade_autorizada" min="0" :max="item.quantidade_solicitada" class="border rounded-xl p-1.5 w-24 text-center font-bold">
+                  <input type="number" v-model.number="item.quantidade_autorizada" min="0" :max="item.quantidade_solicitada" class="border rounded-xl p-1.5 w-20 text-center font-bold" @input="ajustarQuantidade(item)">
                 </div>
                 <button type="button" @click="marcarComoEmFalta(item)" class="self-end mb-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-xl text-xs font-bold transition duration-150 cursor-pointer">
                   Em falta
+                </button>
+                <button type="button" @click="negarItem(item)" class="self-end mb-0.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-3 py-2 rounded-xl text-xs font-bold transition duration-150 cursor-pointer">
+                  Negar
                 </button>
               </div>
 
@@ -248,17 +286,16 @@
       <!-- DECISION BUTTONS -->
       <template #footer>
         <div class="flex flex-nowrap gap-1.5 justify-end w-full">
-          <!-- CCIRAS Actions (4 buttons) -->
+          <!-- CCIRAS Actions (3 buttons) -->
           <template v-if="isCciras">
             <Button @click="submeterDecisaoCciras('EM ANÁLISE')" class="!px-2.5 !py-1.5 !text-xs shrink-0" variant="default">Em Análise</Button>
-            <Button @click="submeterDecisaoCciras('NEGADO')" class="!px-2.5 !py-1.5 !text-xs shrink-0" variant="danger">Negar</Button>
             <Button @click="submeterDecisaoCciras('AUTORIZADO')" class="!px-2.5 !py-1.5 !text-xs shrink-0" variant="primary">Autorizar</Button>
-            <Button @click="submeterDecisaoCciras('LIBERADO')" class="!px-2.5 !py-1.5 !text-xs shrink-0" variant="success">Entregue - Egresso</Button>
+            <Button @click="submeterDecisaoCciras('LIBERADO')" class="!px-2.5 !py-1.5 !text-xs shrink-0" variant="success">Entregue CCIRAS</Button>
           </template>
 
           <!-- Farmácia Actions -->
           <template v-else>
-            <Button @click="submeterDecisaoFarmacia('LIBERADO')" variant="success">Liberar</Button>
+            <Button @click="submeterDecisaoFarmacia('LIBERADO')" variant="success">Liberado/Concluído</Button>
           </template>
         </div>
       </template>
@@ -317,7 +354,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, onUnmounted } from 'vue';
+import { ref, onMounted, computed, onUnmounted, watch } from 'vue';
 import { useToast } from 'vue-toastification';
 import SolicitacoesService, { SolicitacaoCobertura } from '../services/SolicitacoesService';
 import api from '../services/api';
@@ -344,6 +381,7 @@ const isCciras = computed(() => {
 const loading = ref(false);
 const importing = ref(false);
 const solicitacoes = ref<SolicitacaoCobertura[]>([]);
+const searchQuery = ref('');
 
 // Modais
 const showDetalhesModal = ref(false);
@@ -374,38 +412,99 @@ const inicializarSincronizador = () => {
   }, 60000); // Executa a cada minuto
 };
 
+const getSituacaoCciras = (sol: SolicitacaoCobertura) => {
+  if (['PENDENTE', 'EM ANÁLISE', 'NEGADO'].includes(sol.status)) {
+    return sol.status;
+  }
+  return 'AUTORIZADO';
+};
+
+const getSituacaoFarmacia = (sol: SolicitacaoCobertura) => {
+  if (['LIBERADO', 'ENTREGUE'].includes(sol.status)) {
+    return 'LIBERADO';
+  }
+  if (sol.status === 'EM FALTA') {
+    return 'EM FALTA';
+  }
+  if (sol.status === 'AUTORIZADO') {
+    return 'PENDENTE';
+  }
+  return 'PENDENTE';
+};
+
 // Métricas Dinâmicas
 const totalSolicitacoes = computed(() => solicitacoes.value.length);
-const pendentesCount = computed(() => solicitacoes.value.filter(s => s.status === 'PENDENTE').length);
-const emAnaliseCount = computed(() => solicitacoes.value.filter(s => s.status === 'EM ANÁLISE').length);
-const autorizadasCount = computed(() => solicitacoes.value.filter(s => s.status === 'AUTORIZADO').length);
-const negadasCount = computed(() => solicitacoes.value.filter(s => s.status === 'NEGADO').length);
-const liberadasCount = computed(() => solicitacoes.value.filter(s => s.status === 'LIBERADO' || s.status === 'ENTREGUE').length);
-const aguardandoLibCount = computed(() => solicitacoes.value.filter(s => s.status === 'AUTORIZADO' || s.status === 'PENDENTE').length);
+const pendentesCcirasCount = computed(() => solicitacoes.value.filter(s => s.status === 'PENDENTE').length);
+const emAnaliseCcirasCount = computed(() => solicitacoes.value.filter(s => s.status === 'EM ANÁLISE').length);
+const autorizadasCcirasCount = computed(() => solicitacoes.value.filter(s => s.status === 'AUTORIZADO').length);
+const entregueCcirasCount = computed(() => solicitacoes.value.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status)).length);
 
-const ccirasCards = computed(() => [
-  { title: 'Total', value: totalSolicitacoes.value, color: 'text-slate-800' },
-  { title: 'Pendentes', value: pendentesCount.value, color: 'text-yellow-600' },
-  { title: 'Em análise', value: emAnaliseCount.value, color: 'text-orange-500' },
-  { title: 'Autorizadas', value: autorizadasCount.value, color: 'text-blue-600' },
-  { title: 'Negadas', value: negadasCount.value, color: 'text-rose-600' },
-  { title: 'Entregue - Egresso', value: liberadasCount.value, color: 'text-emerald-600' }
+const pendentesFarmaciaCount = computed(() => solicitacoes.value.filter(s => s.status === 'AUTORIZADO').length);
+const emAnaliseFarmaciaCount = computed(() => 0);
+const autorizadasFarmaciaCount = computed(() => solicitacoes.value.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status)).length);
+const entregueFarmaciaCount = computed(() => solicitacoes.value.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status)).length);
+
+const metricCards = computed(() => [
+  { label: 'PENDENTES', sector: 'CCIRAS', value: pendentesCcirasCount.value, color: 'text-yellow-600', filterKey: 'PENDENTES - CCIRAS' },
+  { label: 'EM ANÁLISE', sector: 'CCIRAS', value: emAnaliseCcirasCount.value, color: 'text-orange-550', filterKey: 'EM ANÁLISE - CCIRAS' },
+  { label: 'AUTORIZADAS', sector: 'CCIRAS', value: autorizadasCcirasCount.value, color: 'text-blue-600', filterKey: 'AUTORIZADAS - CCIRAS' },
+  { label: 'ENTREGUE', sector: 'CCIRAS', value: entregueCcirasCount.value, color: 'text-emerald-600', filterKey: 'ENTREGUE - CCIRAS' },
+  { label: 'PENDENTES', sector: 'FARMÁCIA', value: pendentesFarmaciaCount.value, color: 'text-yellow-600', filterKey: 'PENDENTES - FARMÁCIA' },
+  { label: 'EM ANÁLISE', sector: 'FARMÁCIA', value: emAnaliseFarmaciaCount.value, color: 'text-orange-550', filterKey: 'EM ANÁLISE - FARMÁCIA' },
+  { label: 'AUTORIZADAS', sector: 'FARMÁCIA', value: autorizadasFarmaciaCount.value, color: 'text-blue-600', filterKey: 'AUTORIZADAS - FARMÁCIA' },
+  { label: 'ENTREGUE', sector: 'FARMÁCIA', value: entregueFarmaciaCount.value, color: 'text-emerald-600', filterKey: 'ENTREGUE - FARMÁCIA' }
 ]);
 
-const farmaciaCards = computed(() => [
-  { title: 'Aguardando Liberação', value: aguardandoLibCount.value, color: 'text-yellow-600' },
-  { title: 'Negadas', value: negadasCount.value, color: 'text-rose-600' },
-  { title: 'Entregue - Egresso', value: liberadasCount.value, color: 'text-emerald-600' },
-  { title: 'Em análise', value: emAnaliseCount.value, color: 'text-orange-500' }
-]);
+const filtroCardAtivo = ref<string | null>(null);
+
+const selecionarFiltroCard = (title: string) => {
+  if (filtroCardAtivo.value === title) {
+    filtroCardAtivo.value = null;
+  } else {
+    filtroCardAtivo.value = title;
+  }
+};
+
+watch(isCciras, () => {
+  filtroCardAtivo.value = null;
+});
 
 const solicitacoesFiltradas = computed(() => {
-  if (isCciras.value) {
-    return solicitacoes.value;
-  } else {
-    // Farmácia visualiza apenas autorizadas, pendentes ou em análise que necessitam liberação
-    return solicitacoes.value;
+  let list = solicitacoes.value;
+
+  if (filtroCardAtivo.value) {
+    const cardTitle = filtroCardAtivo.value;
+    if (cardTitle === 'PENDENTES - CCIRAS') {
+      list = list.filter(s => s.status === 'PENDENTE');
+    } else if (cardTitle === 'EM ANÁLISE - CCIRAS') {
+      list = list.filter(s => s.status === 'EM ANÁLISE');
+    } else if (cardTitle === 'AUTORIZADAS - CCIRAS') {
+      list = list.filter(s => s.status === 'AUTORIZADO');
+    } else if (cardTitle === 'ENTREGUE - CCIRAS') {
+      list = list.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status));
+    } else if (cardTitle === 'PENDENTES - FARMÁCIA') {
+      list = list.filter(s => s.status === 'AUTORIZADO');
+    } else if (cardTitle === 'EM ANÁLISE - FARMÁCIA') {
+      list = [];
+    } else if (cardTitle === 'AUTORIZADAS - FARMÁCIA') {
+      list = list.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status));
+    } else if (cardTitle === 'ENTREGUE - FARMÁCIA') {
+      list = list.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status));
+    }
   }
+  
+  if (searchQuery.value.trim()) {
+    const query = searchQuery.value.trim().toLowerCase();
+    const queryClean = query.replace('#', '');
+    list = list.filter(s => 
+      s.nome_paciente.toLowerCase().includes(query) || 
+      s.prontuario.toString().includes(query) ||
+      (s.id && s.id.toString() === queryClean) ||
+      (s.id && s.id.toString().includes(queryClean))
+    );
+  }
+  
+  return list;
 });
 
 const formatarData = (dataStr?: string | null) => {
@@ -479,6 +578,14 @@ const abrirAcoes = (sol: SolicitacaoCobertura) => {
 const submeterDecisaoCciras = async (statusGeral: string) => {
   if (!solicitacaoSelecionada.value?.id) return;
 
+  let statusParaEnviar = statusGeral;
+  if (statusGeral === 'AUTORIZADO') {
+    const todosNegados = itensEdicao.value.every(i => i.quantidade_autorizada === 0 || i.status_item === 'NEGADO');
+    if (todosNegados) {
+      statusParaEnviar = 'NEGADO';
+    }
+  }
+
   const originalItens = solicitacaoSelecionada.value.itens || [];
   const alterouQuantidade = itensEdicao.value.some(item => {
     const originalItem = originalItens.find(o => o.id === item.id);
@@ -488,7 +595,8 @@ const submeterDecisaoCciras = async (statusGeral: string) => {
     return item.quantidade_autorizada !== originalQtd;
   });
 
-  const precisaParecer = statusGeral === 'NEGADO' || statusGeral === 'EM ANÁLISE' || alterouQuantidade;
+  const temNegado = itensEdicao.value.some(i => i.quantidade_autorizada === 0 || i.status_item === 'NEGADO');
+  const precisaParecer = statusParaEnviar === 'NEGADO' || statusParaEnviar === 'EM ANÁLISE' || alterouQuantidade || temNegado;
 
   if (precisaParecer && !parecerCciras.value.trim()) {
     toast.warning('Por favor, registre a justificativa técnica/parecer da CCIRAS.');
@@ -497,20 +605,28 @@ const submeterDecisaoCciras = async (statusGeral: string) => {
 
   try {
     const payload = {
-      status_geral: statusGeral,
+      status_geral: statusParaEnviar,
       justificativa: parecerCciras.value,
-      itens: itensEdicao.value.map(i => ({
-        id: i.id!,
-        quantidade_autorizada: i.quantidade_autorizada,
-        status_item: statusGeral === 'NEGADO' ? 'NEGADO' : 'AUTORIZADO'
-      }))
+      itens: itensEdicao.value.map(i => {
+        let itemStatus = 'AUTORIZADO';
+        if (i.quantidade_autorizada === 0 || i.status_item === 'NEGADO') {
+          itemStatus = 'NEGADO';
+        }
+        return {
+          id: i.id!,
+          quantidade_autorizada: i.quantidade_autorizada,
+          status_item: itemStatus
+        };
+      })
     };
     await SolicitacoesService.auditar(solicitacaoSelecionada.value.id, payload);
     
-    if (statusGeral === 'LIBERADO') {
+    if (statusParaEnviar === 'LIBERADO') {
       toast.success('Entregue - Egresso registrado com sucesso!');
-    } else if (statusGeral === 'AUTORIZADO') {
+    } else if (statusParaEnviar === 'AUTORIZADO') {
       toast.success('autorizado com sucesso');
+    } else if (statusParaEnviar === 'NEGADO') {
+      toast.success('solicitação negada com sucesso');
     } else {
       toast.success('Parecer da CCIRAS enviado com sucesso!');
     }
@@ -570,6 +686,23 @@ const marcarComoEmFalta = (item: any) => {
     } else if (!parecerFarmacia.value.includes(msg)) {
       parecerFarmacia.value += `\n${msg}`;
     }
+  }
+};
+
+const negarItem = (item: any) => {
+  item.quantidade_autorizada = 0;
+  item.status_item = 'NEGADO';
+  const msg = `${item.nome_material} negado`;
+  if (!parecerCciras.value.trim()) {
+    parecerCciras.value = msg;
+  } else if (!parecerCciras.value.includes(msg)) {
+    parecerCciras.value += `\n${msg}`;
+  }
+};
+
+const ajustarQuantidade = (item: any) => {
+  if (item.quantidade_autorizada > 0) {
+    item.status_item = 'AUTORIZADO';
   }
 };
 

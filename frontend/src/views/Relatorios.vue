@@ -3,7 +3,7 @@
     <!-- Header Area -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 no-print">
       <div>
-        <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Relatórios CCIRAS</h1>
+        <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Relatórios CCIRAS/Farmácia</h1>
         <p class="text-sm text-slate-500 mt-1">Análise de indicadores, produtividade, economia e SLA de avaliações.</p>
       </div>
 
@@ -168,7 +168,7 @@
             </svg>
           </div>
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase">Negadas</p>
+            <p class="text-xs font-semibold text-slate-400 uppercase">Itens Negados</p>
             <p class="text-2xl font-extrabold text-slate-800">{{ negadasCount }}</p>
             <p class="text-[10px] text-slate-400 font-semibold">{{ pctNegadas }}% do total</p>
           </div>
@@ -421,19 +421,39 @@
     <div v-if="activeTab === 'linha'" class="space-y-6">
       <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
         <!-- Search bar -->
-        <div class="no-print">
-          <label class="block text-sm font-bold text-slate-700 mb-2">Protocolo ou Nome do Paciente</label>
+        <div class="no-print relative">
+          <label class="block text-sm font-bold text-slate-700 mb-2">Nº da RM ou Nome do Paciente</label>
           <div class="relative max-w-md">
             <input 
               v-model="searchQuery" 
+              @focus="focusSuggestions = true"
+              @blur="setTimeout(() => focusSuggestions = false, 200)"
               type="text" 
-              placeholder="Ex: CCIRAS-2024-00128 ou João Silva"
-              class="w-full border border-slate-200 rounded-xl py-2.5 pl-4 pr-10 text-sm focus:outline-none focus:border-indigo-650"
+              placeholder="Ex: 1 ou João Silva"
+              class="w-full border border-slate-200 bg-white rounded-xl py-2.5 pl-4 pr-10 text-sm focus:outline-none focus:border-indigo-650"
             >
             <button class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
               <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
+            </button>
+          </div>
+
+          <!-- Suggestions Dropdown -->
+          <div v-if="focusSuggestions && searchSuggestions.length > 0" class="absolute left-0 mt-1 w-full max-w-md bg-white border border-slate-150 rounded-xl shadow-xl z-50 py-1.5 no-print">
+            <button 
+              v-for="s in searchSuggestions" 
+              :key="s.id"
+              type="button"
+              @mousedown="selecionarSolicitacaoTrace(s)"
+              class="w-full text-left px-4 py-2 hover:bg-slate-50 flex flex-col justify-between transition duration-150 cursor-pointer border-b last:border-0 border-slate-100"
+            >
+              <div class="flex justify-between text-xs font-bold text-indigo-700">
+                <span>RM #{{ s.id }}</span>
+                <span class="text-slate-400 font-semibold">{{ s.created_at ? new Date(s.created_at).toLocaleDateString('pt-BR') : '' }}</span>
+              </div>
+              <div class="text-sm font-bold text-slate-800 mt-0.5">{{ s.nome_paciente }}</div>
+              <div class="text-xs text-slate-500 mt-0.5">Prontuário: {{ s.prontuario }} • Status: {{ s.status }}</div>
             </button>
           </div>
         </div>
@@ -867,19 +887,44 @@ const slaUnits = computed(() => {
 });
 
 // Tab 3: Timeline & Traceability Search
+import { watch } from 'vue';
+
 const searchQuery = ref('');
 const loadingTrace = ref(false);
+const selectedTraceId = ref<number | null>(null);
+const focusSuggestions = ref(false);
 
-const traceSolicitacao = computed(() => {
-  if (!searchQuery.value.trim()) {
-    return filteredSolicitacoes.value[0] || null;
-  }
-  const query = searchQuery.value.toLowerCase();
-  return filteredSolicitacoes.value.find(s => 
+const searchSuggestions = computed(() => {
+  if (!searchQuery.value.trim()) return [];
+  const query = searchQuery.value.trim().toLowerCase();
+  const queryClean = query.replace('#', '');
+  return solicitacoes.value.filter(s => 
     s.nome_paciente.toLowerCase().includes(query) || 
     s.prontuario.toString().includes(query) ||
-    (s.id && `cciras-2024-001${s.id}`.toLowerCase().includes(query))
-  ) || filteredSolicitacoes.value[0] || null;
+    (s.id && s.id.toString().includes(queryClean))
+  ).slice(0, 5);
+});
+
+const selecionarSolicitacaoTrace = (s: SolicitacaoCobertura) => {
+  if (s.id) {
+    selectedTraceId.value = s.id;
+    searchQuery.value = `#${s.id} - ${s.nome_paciente}`;
+  }
+  focusSuggestions.value = false;
+};
+
+// Auto-select first request as default trace
+watch(solicitacoes, (newVal) => {
+  if (newVal.length > 0 && selectedTraceId.value === null) {
+    selectedTraceId.value = newVal[0].id || null;
+  }
+});
+
+const traceSolicitacao = computed(() => {
+  if (selectedTraceId.value !== null) {
+    return solicitacoes.value.find(s => s.id === selectedTraceId.value) || null;
+  }
+  return filteredSolicitacoes.value[0] || null;
 });
 
 
