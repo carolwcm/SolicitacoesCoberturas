@@ -421,7 +421,11 @@
     <div v-if="activeTab === 'linha'" class="space-y-6">
       <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
         <!-- Search bar -->
+<<<<<<< Updated upstream
         <div class="no-print relative">
+=======
+        <div class="no-print">
+>>>>>>> Stashed changes
           <label class="block text-sm font-bold text-slate-700 mb-2">Nº da RM ou Nome do Paciente</label>
           <div class="relative max-w-md">
             <input 
@@ -430,7 +434,11 @@
               @blur="setTimeout(() => focusSuggestions = false, 200)"
               type="text" 
               placeholder="Ex: 1 ou João Silva"
+<<<<<<< Updated upstream
               class="w-full border border-slate-200 bg-white rounded-xl py-2.5 pl-4 pr-10 text-sm focus:outline-none focus:border-indigo-650"
+=======
+              class="w-full border border-slate-200 rounded-xl py-2.5 pl-4 pr-10 text-sm focus:outline-none focus:border-indigo-650"
+>>>>>>> Stashed changes
             >
             <button class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
               <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

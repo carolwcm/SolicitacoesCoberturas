@@ -76,6 +76,14 @@ async def entregar_solicitacao(
     provider: SolicitacaoCoberturaProviderInterface
 ) -> Dict[str, Any]:
     """Registra que a farmácia entregou/liberou os itens autorizados."""
+    # Verifica se a situação da CCIRAS está pendente
+    sol = await provider.obter_solicitacao_por_id(solicitacao_id)
+    if sol.get("status") in ["PENDENTE", "EM ANÁLISE"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Autorização da CCIRAS PENDENTE. Aguarde autorização."
+        )
+
     # Validações dos itens liberados
     for item in itens_atualizados:
         if "id" not in item:

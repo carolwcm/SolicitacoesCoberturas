@@ -641,6 +641,12 @@ const submeterDecisaoCciras = async (statusGeral: string) => {
 // Farmácia Decision Submission
 const submeterDecisaoFarmacia = async (statusGeral: string) => {
   if (!solicitacaoSelecionada.value?.id) return;
+
+  if (solicitacaoSelecionada.value.status === 'PENDENTE' || solicitacaoSelecionada.value.status === 'EM ANÁLISE') {
+    toast.warning('Autorização da CCIRAS  PENDENTE. Aguarde autorização.');
+    return;
+  }
+
   if (!parecerFarmacia.value.trim()) {
     toast.warning('Por favor, registre a justificativa/parecer da Farmácia.');
     return;
