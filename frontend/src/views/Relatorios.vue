@@ -37,6 +37,7 @@
               class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 font-semibold focus:outline-none focus:border-indigo-650 cursor-pointer min-w-[150px]"
             >
               <option value="todos">Todos</option>
+              <option value="hoje">Hoje</option>
               <option value="7d">Últimos 7 dias</option>
               <option value="30d">Últimos 30 dias</option>
               <option value="mes">Mês atual</option>
@@ -155,7 +156,7 @@
             </svg>
           </div>
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase">Autorizadas</p>
+            <p class="text-xs font-semibold text-slate-400 uppercase">Auditadas</p>
             <p class="text-2xl font-extrabold text-slate-800">{{ autorizadasCount }}</p>
             <p class="text-[10px] text-slate-400 font-semibold">{{ pctAutorizadas }}% do total</p>
           </div>
@@ -284,7 +285,7 @@
             </div>
             <!-- Labels -->
             <div class="space-y-2 text-xs">
-              <div class="flex items-center"><span class="w-3 h-3 bg-emerald-500 rounded-full mr-2"></span> {{ autorizadasCount }} Autorizadas</div>
+              <div class="flex items-center"><span class="w-3 h-3 bg-emerald-500 rounded-full mr-2"></span> {{ autorizadasCount }} Auditadas</div>
               <div class="flex items-center"><span class="w-3 h-3 bg-rose-500 rounded-full mr-2"></span> {{ negadasCount }} Negadas</div>
               <div class="flex items-center"><span class="w-3 h-3 bg-indigo-500 rounded-full mr-2"></span> {{ emAnaliseCount }} Em análise</div>
               <div class="flex items-center"><span class="w-3 h-3 bg-slate-400 rounded-full mr-2"></span> {{ pendentesCount }} Pendentes</div>
@@ -320,7 +321,7 @@
           <div class="w-full bg-slate-100 h-2.5 rounded-full mt-3 overflow-hidden">
             <div class="bg-emerald-500 h-full rounded-full" :style="{ width: `${pctAprovacao}%` }"></div>
           </div>
-          <p class="text-[10px] text-slate-400 mt-2 font-medium">{{ autorizadasCount }} autorizadas de {{ totalCount }} solicitações</p>
+          <p class="text-[10px] text-slate-400 mt-2 font-medium">{{ autorizadasCount }} auditadas de {{ totalCount }} solicitações</p>
         </div>
 
         <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
@@ -332,20 +333,20 @@
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
             </svg>
-            <span>Meta: até 24h</span>
+            <span>Meta: até 3h</span>
           </div>
         </div>
 
         <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div>
-            <p class="text-xs font-bold text-slate-400 uppercase mb-2">Tempo médio de liberação (Farmácia)</p>
+            <p class="text-xs font-bold text-slate-400 uppercase mb-2">Tempo médio de avaliação farmácia</p>
             <p class="text-3xl font-black text-slate-800">{{ tempoMedioFarmacia }}</p>
           </div>
           <div class="flex items-center gap-2 mt-4 text-emerald-600 text-xs font-bold bg-emerald-50 py-1.5 px-3 rounded-xl w-fit">
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
             </svg>
-            <span>Meta: até 6h</span>
+            <span>Meta: até 3h (pós-CCIRAS)</span>
           </div>
         </div>
 
@@ -369,10 +370,11 @@
             <div class="relative w-36 h-36 shrink-0">
               <svg class="w-full h-full transform -rotate-90" viewBox="0 0 40 40">
                 <circle class="text-slate-100" stroke="currentColor" stroke-width="6" fill="none" cx="20" cy="20" r="15.915" />
-                <circle class="text-indigo-600" :stroke-dasharray="`${slaRanges.ok} ${100 - slaRanges.ok}`" stroke="currentColor" stroke-width="6" fill="none" cx="20" cy="20" r="15.915" />
-                <circle class="text-emerald-500" :stroke-dasharray="`${slaRanges.warning} ${100 - slaRanges.warning}`" :stroke-dashoffset="`-${slaRanges.ok}`" stroke="currentColor" stroke-width="6" fill="none" cx="20" cy="20" r="15.915" />
-                <circle class="text-amber-500" :stroke-dasharray="`${slaRanges.late} ${100 - slaRanges.late}`" :stroke-dashoffset="`-${slaRanges.ok + slaRanges.warning}`" stroke="currentColor" stroke-width="6" fill="none" cx="20" cy="20" r="15.915" />
-                <circle class="text-rose-500" :stroke-dasharray="`${slaRanges.veryLate} ${100 - slaRanges.veryLate}`" :stroke-dashoffset="`-${slaRanges.ok + slaRanges.warning + slaRanges.late}`" stroke="currentColor" stroke-width="6" fill="none" cx="20" cy="20" r="15.915" />
+                <circle class="text-indigo-600" :stroke-dasharray="`${slaRanges.r1} ${100 - slaRanges.r1}`" stroke="currentColor" stroke-width="6" fill="none" cx="20" cy="20" r="15.915" />
+                <circle class="text-emerald-500" :stroke-dasharray="`${slaRanges.r2} ${100 - slaRanges.r2}`" :stroke-dashoffset="`-${slaRanges.r1}`" stroke="currentColor" stroke-width="6" fill="none" cx="20" cy="20" r="15.915" />
+                <circle class="text-amber-500" :stroke-dasharray="`${slaRanges.r3} ${100 - slaRanges.r3}`" :stroke-dashoffset="`-${slaRanges.r1 + slaRanges.r2}`" stroke="currentColor" stroke-width="6" fill="none" cx="20" cy="20" r="15.915" />
+                <circle class="text-orange-500" :stroke-dasharray="`${slaRanges.r4} ${100 - slaRanges.r4}`" :stroke-dashoffset="`-${slaRanges.r1 + slaRanges.r2 + slaRanges.r3}`" stroke="currentColor" stroke-width="6" fill="none" cx="20" cy="20" r="15.915" />
+                <circle class="text-rose-500" :stroke-dasharray="`${slaRanges.r5} ${100 - slaRanges.r5}`" :stroke-dashoffset="`-${slaRanges.r1 + slaRanges.r2 + slaRanges.r3 + slaRanges.r4}`" stroke="currentColor" stroke-width="6" fill="none" cx="20" cy="20" r="15.915" />
               </svg>
               <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
                 <span class="text-2xl font-black text-slate-800">{{ filteredSolicitacoes.length }}</span>
@@ -381,11 +383,12 @@
                 </span>
               </div>
             </div>
-            <div class="space-y-3 text-xs ml-4 font-semibold text-slate-600">
-              <div class="flex items-center"><span class="w-3.5 h-3.5 bg-indigo-600 rounded-full mr-2.5"></span> Até 24h</div>
-              <div class="flex items-center"><span class="w-3.5 h-3.5 bg-emerald-500 rounded-full mr-2.5"></span> 24h - 48h</div>
-              <div class="flex items-center"><span class="w-3.5 h-3.5 bg-amber-500 rounded-full mr-2.5"></span> 48h - 72h</div>
-              <div class="flex items-center"><span class="w-3.5 h-3.5 bg-rose-500 rounded-full mr-2.5"></span> > 72h</div>
+            <div class="space-y-2.5 text-xs ml-4 font-semibold text-slate-600">
+              <div class="flex items-center"><span class="w-3.5 h-3.5 bg-indigo-600 rounded-full mr-2.5"></span> Até 1h ({{ slaRanges.r1 }}%)</div>
+              <div class="flex items-center"><span class="w-3.5 h-3.5 bg-emerald-500 rounded-full mr-2.5"></span> 1h - 3h ({{ slaRanges.r2 }}%)</div>
+              <div class="flex items-center"><span class="w-3.5 h-3.5 bg-amber-500 rounded-full mr-2.5"></span> 3h - 6h ({{ slaRanges.r3 }}%)</div>
+              <div class="flex items-center"><span class="w-3.5 h-3.5 bg-orange-500 rounded-full mr-2.5"></span> 6h - 12h ({{ slaRanges.r4 }}%)</div>
+              <div class="flex items-center"><span class="w-3.5 h-3.5 bg-rose-500 rounded-full mr-2.5"></span> &gt; 12h ({{ slaRanges.r5 }}%)</div>
             </div>
           </div>
         </div>
@@ -431,7 +434,7 @@
             <input 
               v-model="searchQuery" 
               @focus="focusSuggestions = true"
-              @blur="setTimeout(() => focusSuggestions = false, 200)"
+              @blur="handleBlur"
               type="text" 
               placeholder="Ex: 1 ou João Silva"
 <<<<<<< Updated upstream
@@ -597,6 +600,9 @@ const filteredSolicitacoes = computed(() => {
     list = list.filter(s => {
       if (!s.created_at) return false;
       const date = new Date(s.created_at);
+      if (filtroPeriodo.value === 'hoje') {
+        return date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+      }
       if (filtroPeriodo.value === '7d') {
         const diffTime = Math.abs(now.getTime() - date.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -630,7 +636,7 @@ const filteredSolicitacoes = computed(() => {
 
 // Tab 1: General Computations
 const totalCount = computed(() => filteredSolicitacoes.value.length || 1); // Avoid division by zero
-const autorizadasCount = computed(() => filteredSolicitacoes.value.filter(s => s.status === 'AUTORIZADO' || s.status === 'LIBERADO' || s.status === 'ENTREGUE').length);
+const autorizadasCount = computed(() => filteredSolicitacoes.value.filter(s => s.status === 'AUTORIZADO' || s.status === 'AUDITADO' || s.status === 'LIBERADO' || s.status === 'ENTREGUE').length);
 const negadasCount = computed(() => filteredSolicitacoes.value.filter(s => s.status === 'NEGADO').length);
 const emAnaliseCount = computed(() => filteredSolicitacoes.value.filter(s => s.status === 'EM ANÁLISE').length);
 const pendentesCount = computed(() => filteredSolicitacoes.value.filter(s => s.status === 'PENDENTE').length);
@@ -787,42 +793,46 @@ const pctRetrabalho = computed(() => {
 });
 
 const slaRanges = computed(() => {
-  let ok = 0;
-  let warning = 0;
-  let late = 0;
-  let veryLate = 0;
+  let r1 = 0; // Até 1h
+  let r2 = 0; // 1h - 3h
+  let r3 = 0; // 3h - 6h
+  let r4 = 0; // 6h - 12h
+  let r5 = 0; // >12h
   
   const total = filteredSolicitacoes.value.length;
   if (total === 0) {
-    return { ok: 100, warning: 0, late: 0, veryLate: 0 };
+    return { r1: 100, r2: 0, r3: 0, r4: 0, r5: 0 };
   }
   
   const now = new Date();
   filteredSolicitacoes.value.forEach(s => {
     if (!s.created_at) {
-      ok++;
+      r1++;
       return;
     }
     const start = new Date(s.created_at);
     const end = s.data_auditoria ? new Date(s.data_auditoria) : now;
     const diffHours = Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60);
     
-    if (diffHours <= 24) {
-      ok++;
-    } else if (diffHours <= 48) {
-      warning++;
-    } else if (diffHours <= 72) {
-      late++;
+    if (diffHours <= 1) {
+      r1++;
+    } else if (diffHours <= 3) {
+      r2++;
+    } else if (diffHours <= 6) {
+      r3++;
+    } else if (diffHours <= 12) {
+      r4++;
     } else {
-      veryLate++;
+      r5++;
     }
   });
   
   return {
-    ok: Math.round((ok / total) * 100),
-    warning: Math.round((warning / total) * 100),
-    late: Math.round((late / total) * 100),
-    veryLate: Math.round((veryLate / total) * 100)
+    r1: Math.round((r1 / total) * 100),
+    r2: Math.round((r2 / total) * 100),
+    r3: Math.round((r3 / total) * 100),
+    r4: Math.round((r4 / total) * 100),
+    r5: Math.round((r5 / total) * 100)
   };
 });
 
@@ -877,10 +887,10 @@ const slaUnits = computed(() => {
     let status = 'SLA OK';
     let badgeClass = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200';
     
-    if (avgHours > 24) {
+    if (avgHours > 3) {
       status = 'SLA Estourado';
       badgeClass = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200';
-    } else if (avgHours > 18) {
+    } else if (avgHours > 2) {
       status = 'Atenção';
       badgeClass = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200';
     }
@@ -919,6 +929,12 @@ const selecionarSolicitacaoTrace = (s: SolicitacaoCobertura) => {
     searchQuery.value = `#${s.id} - ${s.nome_paciente}`;
   }
   focusSuggestions.value = false;
+};
+
+const handleBlur = () => {
+  setTimeout(() => {
+    focusSuggestions.value = false;
+  }, 200);
 };
 
 // Auto-select first request as default trace
@@ -970,7 +986,7 @@ const actionHistory = computed(() => {
       time: new Date(sol.data_auditoria).toLocaleString('pt-BR'),
       user: sol.auditor_username || 'CCIRAS',
       sector: 'CCIRAS',
-      action: sol.status === 'NEGADO' ? 'Negou' : 'Autorizou',
+      action: sol.status === 'NEGADO' ? 'Negou' : 'Auditou',
       actionBadge: sol.status === 'NEGADO' ? 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700' : 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700',
       note: sol.justificativa || 'Parecer emitido.'
     });

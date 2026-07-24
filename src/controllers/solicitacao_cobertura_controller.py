@@ -42,7 +42,7 @@ async def auditar_solicitacao(
     provider: SolicitacaoCoberturaProviderInterface
 ) -> Dict[str, Any]:
     """Realiza a auditoria da CCIRAS na solicitação."""
-    if status_geral.upper() not in ["AUTORIZADO", "NEGADO", "EM ANÁLISE", "LIBERADO", "LIBERADO PELA CCIRAS"]:
+    if status_geral.upper() not in ["AUTORIZADO", "AUDITADO", "NEGADO", "EM ANÁLISE", "LIBERADO", "LIBERADO PELA CCIRAS"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, 
             detail="Status geral inválido na auditoria."
@@ -52,9 +52,9 @@ async def auditar_solicitacao(
     for item in itens_atualizados:
         if "id" not in item:
             raise HTTPException(status_code=400, detail="ID do item é obrigatório para atualização.")
-        if item.get("status_item").upper() not in ["AUTORIZADO", "NEGADO", "PENDENTE", "LIBERADO", "EM ANÁLISE"]:
+        if item.get("status_item").upper() not in ["AUTORIZADO", "AUDITADO", "NEGADO", "PENDENTE", "LIBERADO", "EM ANÁLISE"]:
             raise HTTPException(status_code=400, detail="Status de item inválido.")
-        if item.get("status_item").upper() in ["AUTORIZADO", "LIBERADO"]:
+        if item.get("status_item").upper() in ["AUTORIZADO", "AUDITADO", "LIBERADO"]:
             qtd_aut = item.get("quantidade_autorizada")
             if qtd_aut is None or qtd_aut < 0:
                 raise HTTPException(status_code=400, detail="Quantidade autorizada inválida para item aprovado.")

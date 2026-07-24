@@ -4,10 +4,14 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
       <div>
         <h1 class="text-2xl font-bold text-slate-800 tracking-tight">
-          {{ isCciras ? 'Portal CCIRAS - Auditoria de Curativos' : 'Portal Farmácia - Liberação de Curativos' }}
+          <span v-if="isCciras">Portal CCIRAS - Auditoria de Curativos</span>
+          <span v-else-if="isFarmacia">Portal Farmácia - Liberação de Curativos</span>
+          <span v-else>Portal Enfermagem - Acompanhamento de Pedidos</span>
         </h1>
         <p class="text-sm text-slate-500 mt-1">
-          {{ isCciras ? 'Análise técnica, pareceres e autorização de coberturas especiais.' : 'Monitoramento de pareceres, controle de estoques e liberação final.' }}
+          <span v-if="isCciras">Análise técnica, pareceres e autorização de coberturas especiais.</span>
+          <span v-else-if="isFarmacia">Monitoramento de pareceres, controle de estoques e liberação final.</span>
+          <span v-else>Acompanhe o status dos seus pedidos, pareceres técnicos e liberação de materiais.</span>
         </p>
       </div>
 
@@ -23,7 +27,7 @@
         </Button>
 
         <!-- Farmácia manual update -->
-        <Button v-else @click="atualizarParecerCciras" variant="primary" :loading="loading">
+        <Button v-else-if="isFarmacia" @click="atualizarParecerCciras" variant="primary" :loading="loading">
           <template #icon>
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18.25" />
@@ -42,8 +46,8 @@
     </div>
 
     <!-- Admin View Toggle Selector -->
-    <div v-if="authStore.isAdmin" class="flex justify-center bg-white p-2.5 rounded-2xl shadow-sm border border-slate-100 max-w-md mx-auto">
-      <div class="grid grid-cols-2 gap-2 w-full">
+    <div v-if="authStore.isAdmin" class="flex justify-center bg-white p-2.5 rounded-2xl shadow-sm border border-slate-100 max-w-lg mx-auto">
+      <div class="grid grid-cols-3 gap-2 w-full">
         <button 
           @click="modoExibicao = 'cciras'"
           :class="[
@@ -66,13 +70,24 @@
         >
           Visual Farmácia
         </button>
+        <button 
+          @click="modoExibicao = 'enfermagem'"
+          :class="[
+            modoExibicao === 'enfermagem' 
+              ? 'bg-[#009688] text-white shadow-sm' 
+              : 'bg-transparent text-slate-600 hover:bg-slate-50',
+            'py-2 px-4 rounded-xl text-sm font-bold transition-all duration-200 cursor-pointer text-center'
+          ]"
+        >
+          Visual Enfermagem
+        </button>
       </div>
     </div>
 
     <!-- METRICS CARDS SECTION -->
-    <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-4">
+    <div :class="['grid gap-4', isFarmacia ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-2 sm:grid-cols-4']">
       <div 
-        v-for="card in metricCards" 
+        v-for="card in metricCardsFiltrados" 
         :key="card.filterKey" 
         @click="selecionarFiltroCard(card.filterKey)"
         :class="[
@@ -90,8 +105,67 @@
       </div>
     </div>
 
-    <!-- TABLE SECTION -->
-    <div class="flex justify-end no-print mb-4">
+    <!-- FILTERS SECTION -->
+    <div class="flex flex-col md:flex-row justify-between items-end gap-4 no-print mb-4 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm animate-fade-in">
+      <!-- Filtros da Esquerda (Unidade Funcional e Período) -->
+      <div class="flex flex-wrap items-end gap-4 w-full md:w-auto">
+        <!-- Filtro Unidade Funcional -->
+        <div class="flex flex-col">
+          <label class="text-xs font-bold text-slate-400 uppercase mb-1">Unidade Funcional</label>
+          <select 
+            v-model="filtroUnidade" 
+            class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 font-semibold focus:outline-none focus:border-indigo-650 cursor-pointer min-w-[180px]"
+          >
+            <option value="">Todas</option>
+            <option value="UTI Adulto">UTI Adulto</option>
+            <option value="Clínica Médica">Clínica Médica</option>
+            <option value="Clínica Cirúrgica">Clínica Cirúrgica</option>
+            <option value="Emergência">Emergência</option>
+            <option value="Ortopedia">Ortopedia</option>
+            <option value="Pediatria">Pediatria</option>
+            <option value="Oncologia">Oncologia</option>
+          </select>
+        </div>
+
+        <!-- Filtro Período -->
+        <div class="flex items-end gap-2 flex-wrap">
+          <div class="flex flex-col">
+            <label class="text-xs font-bold text-slate-400 uppercase mb-1">Período</label>
+            <select 
+              v-model="filtroPeriodo" 
+              class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 font-semibold focus:outline-none focus:border-indigo-650 cursor-pointer min-w-[150px]"
+            >
+              <option value="todos">Todos</option>
+              <option value="hoje">Hoje</option>
+              <option value="7d">Últimos 7 dias</option>
+              <option value="30d">Últimos 30 dias</option>
+              <option value="mes">Mês atual</option>
+              <option value="personalizado">Personalizado</option>
+            </select>
+          </div>
+
+          <div v-if="filtroPeriodo === 'personalizado'" class="flex items-center gap-2 flex-wrap">
+            <div class="flex flex-col">
+              <label class="text-xs font-bold text-slate-400 uppercase mb-1">Início</label>
+              <input 
+                v-model="filtroDataInicio" 
+                type="date" 
+                class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-sm text-slate-750 font-semibold focus:outline-none focus:border-indigo-650 cursor-pointer animate-fade-in"
+              >
+            </div>
+            <div class="flex flex-col">
+              <label class="text-xs font-bold text-slate-400 uppercase mb-1">Fim</label>
+              <input 
+                v-model="filtroDataFim" 
+                type="date" 
+                class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-sm text-slate-750 font-semibold focus:outline-none focus:border-indigo-650 cursor-pointer animate-fade-in"
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtro da Direita (Nº da RM ou Nome do Paciente) -->
       <div class="w-full md:max-w-md">
         <label class="block text-sm font-bold text-slate-700 mb-2">Nº da RM ou Nome do Paciente</label>
         <div class="relative">
@@ -99,7 +173,7 @@
             v-model="searchQuery" 
             type="text" 
             placeholder="Ex: 1 ou João Silva"
-            class="w-full border border-slate-200 rounded-xl py-2.5 pl-4 pr-10 text-sm focus:outline-none focus:border-indigo-650 bg-white"
+            class="w-full border border-slate-200 rounded-xl py-2.5 pl-4 pr-10 text-sm focus:outline-none focus:border-indigo-600 bg-white"
           >
           <button class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -229,7 +303,7 @@
         <div>
           <h3 class="font-bold text-slate-800 mb-3">Coberturas e Quantidades</h3>
           <div class="space-y-3">
-            <div v-for="item in (isCciras ? itensEdicao : itensEdicao.filter(i => i.status_item === 'AUTORIZADO' || i.status_item === 'NEGADO'))" :key="item.id" class="border border-slate-150 rounded-2xl p-4 bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div v-for="item in (isCciras || isEnfermagem ? itensEdicao : itensEdicao.filter(i => i.status_item === 'AUTORIZADO' || i.status_item === 'AUDITADO' || i.status_item === 'NEGADO'))" :key="item.id" class="border border-slate-150 rounded-2xl p-4 bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div class="flex-1">
                 <p class="font-semibold text-slate-900">{{ item.nome_material }}</p>
                 <p class="text-xs text-slate-500">Código: {{ item.codigo_material }}</p>
@@ -242,7 +316,7 @@
                   <span class="text-sm font-bold text-slate-800">{{ item.quantidade_solicitada }}</span>
                 </div>
                 <div>
-                  <label class="block text-xs font-semibold text-slate-500 mb-1">Qtd Autorizada</label>
+                  <label class="block text-xs font-semibold text-slate-500 mb-1">Qtd Auditada</label>
                   <input type="number" v-model.number="item.quantidade_autorizada" min="0" :max="item.quantidade_solicitada" class="border rounded-xl p-1.5 w-20 text-center font-bold" @input="ajustarQuantidade(item)">
                 </div>
                 <button type="button" @click="marcarComoEmFalta(item)" class="self-end mb-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-xl text-xs font-bold transition duration-150 cursor-pointer">
@@ -253,17 +327,24 @@
                 </button>
               </div>
 
-              <!-- Controle de Qtd para Farmácia -->
+              <!-- Controle de Qtd para Farmácia ou Enfermagem -->
               <div v-else class="flex items-center gap-4">
                 <div>
-                  <span class="text-xs text-slate-400 block mb-1">Autorizada CCIRAS</span>
+                  <span class="text-xs text-slate-400 block mb-1">Auditada CCIRAS</span>
                   <span class="text-sm font-bold text-slate-800">{{ item.quantidade_autorizada }}</span>
                 </div>
-                <div>
+                
+                <!-- Qtd Liberada (Editable for Farmácia, Read-only for Enfermagem) -->
+                <div v-if="isFarmacia">
                   <label class="block text-xs font-semibold text-slate-500 mb-1">Qtd Liberada</label>
                   <input type="number" v-model.number="item.quantidade_liberada" min="0" :max="item.quantidade_autorizada" class="border rounded-xl p-1.5 w-24 text-center font-bold">
                 </div>
-                <button type="button" @click="marcarComoEmFalta(item)" class="self-end mb-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-xl text-xs font-bold transition duration-150 cursor-pointer">
+                <div v-else>
+                  <span class="text-xs text-slate-400 block mb-1">Qtd Liberada Farmácia</span>
+                  <span class="text-sm font-bold text-slate-800">{{ item.quantidade_liberada !== null && item.quantidade_liberada !== undefined ? item.quantidade_liberada : 'Pendente' }}</span>
+                </div>
+
+                <button v-if="isFarmacia" type="button" @click="marcarComoEmFalta(item)" class="self-end mb-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-xl text-xs font-bold transition duration-150 cursor-pointer">
                   Em falta
                 </button>
               </div>
@@ -277,9 +358,34 @@
           <textarea v-model="parecerCciras" rows="3" class="w-full border rounded-2xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Digite a análise técnica e justificativa..."></textarea>
         </div>
 
-        <div v-else class="form-group">
+        <div v-else-if="isFarmacia" class="form-group">
           <label class="block text-sm font-bold text-slate-700 mb-2">Parecer da Farmácia</label>
           <textarea v-model="parecerFarmacia" rows="3" class="w-full border rounded-2xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Digite a justificativa de entrega/liberação..."></textarea>
+        </div>
+
+        <!-- Enfermagem View Pareceres (Read-only status cards) -->
+        <div v-else class="space-y-4">
+          <div v-if="solicitacaoSelecionada.justificativa" class="border border-indigo-100 bg-indigo-50/20 rounded-2xl p-4 space-y-1">
+            <h4 class="font-bold text-indigo-950 text-xs uppercase">Parecer CCIRAS (Auditoria)</h4>
+            <div class="text-xs text-indigo-800">
+              Auditor: {{ solicitacaoSelecionada.auditor_username || 'N/A' }} | Data: {{ formatarData(solicitacaoSelecionada.data_auditoria) }}
+            </div>
+            <p class="text-sm text-indigo-950 mt-1 italic">"{{ solicitacaoSelecionada.justificativa }}"</p>
+          </div>
+          <div v-else class="border border-slate-200 bg-slate-50/50 rounded-2xl p-4 text-xs font-semibold text-slate-500">
+            Aguardando parecer da auditoria CCIRAS.
+          </div>
+
+          <div v-if="solicitacaoSelecionada.parecer_farmacia" class="border border-emerald-100 bg-emerald-50/20 rounded-2xl p-4 space-y-1">
+            <h4 class="font-bold text-emerald-950 text-xs uppercase">Parecer Farmácia (Liberação)</h4>
+            <div class="text-xs text-emerald-800">
+              Farmacêutico: {{ solicitacaoSelecionada.farmaceutico_username || 'N/A' }} | Data: {{ formatarData(solicitacaoSelecionada.data_entrega) }}
+            </div>
+            <p class="text-sm text-emerald-950 mt-1 italic">"{{ solicitacaoSelecionada.parecer_farmacia }}"</p>
+          </div>
+          <div v-else-if="solicitacaoSelecionada.status === 'AUTORIZADO' || solicitacaoSelecionada.status === 'AUDITADO'" class="border border-slate-200 bg-slate-50/50 rounded-2xl p-4 text-xs font-semibold text-slate-500">
+            Aguardando parecer e liberação da Farmácia.
+          </div>
         </div>
       </div>
 
@@ -289,13 +395,18 @@
           <!-- CCIRAS Actions (3 buttons) -->
           <template v-if="isCciras">
             <Button @click="submeterDecisaoCciras('EM ANÁLISE')" class="!px-2.5 !py-1.5 !text-xs shrink-0" variant="default">Em Análise</Button>
-            <Button @click="submeterDecisaoCciras('AUTORIZADO')" class="!px-2.5 !py-1.5 !text-xs shrink-0" variant="primary">Autorizar</Button>
+            <Button @click="submeterDecisaoCciras('AUDITADO')" class="!px-2.5 !py-1.5 !text-xs shrink-0" variant="primary">Auditado</Button>
             <Button @click="submeterDecisaoCciras('LIBERADO')" class="!px-2.5 !py-1.5 !text-xs shrink-0" variant="success">Entregue CCIRAS</Button>
           </template>
 
           <!-- Farmácia Actions -->
-          <template v-else>
+          <template v-else-if="isFarmacia">
             <Button @click="submeterDecisaoFarmacia('LIBERADO')" variant="success">Liberado/Concluído</Button>
+          </template>
+
+          <!-- Enfermagem Actions -->
+          <template v-else>
+            <Button @click="showDetalhesModal = false" variant="default">Fechar</Button>
           </template>
         </div>
       </template>
@@ -369,7 +480,7 @@ const toast = useToast();
 const authStore = useAuthStore();
 
 // Perfil e Modo de Exibição
-const modoExibicao = ref<'cciras' | 'farmacia'>('cciras');
+const modoExibicao = ref<'cciras' | 'farmacia' | 'enfermagem'>('cciras');
 
 const isCciras = computed(() => {
   if (authStore.isAdmin) {
@@ -378,10 +489,28 @@ const isCciras = computed(() => {
   return authStore.isCciras;
 });
 
+const isFarmacia = computed(() => {
+  if (authStore.isAdmin) {
+    return modoExibicao.value === 'farmacia';
+  }
+  return authStore.isFarmacia;
+});
+
+const isEnfermagem = computed(() => {
+  if (authStore.isAdmin) {
+    return modoExibicao.value === 'enfermagem';
+  }
+  return !authStore.isCciras && !authStore.isFarmacia;
+});
+
 const loading = ref(false);
 const importing = ref(false);
 const solicitacoes = ref<SolicitacaoCobertura[]>([]);
 const searchQuery = ref('');
+const filtroUnidade = ref('');
+const filtroPeriodo = ref('todos');
+const filtroDataInicio = ref('');
+const filtroDataFim = ref('');
 
 // Modais
 const showDetalhesModal = ref(false);
@@ -413,47 +542,64 @@ const inicializarSincronizador = () => {
 };
 
 const getSituacaoCciras = (sol: SolicitacaoCobertura) => {
-  if (['PENDENTE', 'EM ANÁLISE', 'NEGADO'].includes(sol.status)) {
+  if (sol.status && ['PENDENTE', 'EM ANÁLISE', 'NEGADO'].includes(sol.status)) {
     return sol.status;
   }
-  return 'AUTORIZADO';
+  return 'AUDITADO';
 };
 
 const getSituacaoFarmacia = (sol: SolicitacaoCobertura) => {
-  if (['LIBERADO', 'ENTREGUE'].includes(sol.status)) {
-    return 'LIBERADO';
+  if (sol.status && ['LIBERADO', 'ENTREGUE'].includes(sol.status)) {
+    return 'LIBERADO/CONCLUÍDO';
   }
   if (sol.status === 'EM FALTA') {
     return 'EM FALTA';
   }
-  if (sol.status === 'AUTORIZADO') {
+  if (sol.status === 'AUTORIZADO' || sol.status === 'AUDITADO') {
     return 'PENDENTE';
   }
   return 'PENDENTE';
 };
 
 // Métricas Dinâmicas
-const totalSolicitacoes = computed(() => solicitacoes.value.length);
 const pendentesCcirasCount = computed(() => solicitacoes.value.filter(s => s.status === 'PENDENTE').length);
 const emAnaliseCcirasCount = computed(() => solicitacoes.value.filter(s => s.status === 'EM ANÁLISE').length);
-const autorizadasCcirasCount = computed(() => solicitacoes.value.filter(s => s.status === 'AUTORIZADO').length);
-const entregueCcirasCount = computed(() => solicitacoes.value.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status)).length);
+const autorizadasCcirasCount = computed(() => solicitacoes.value.filter(s => s.status === 'AUTORIZADO' || s.status === 'AUDITADO').length);
+const entregueCcirasCount = computed(() => solicitacoes.value.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status || '')).length);
 
-const pendentesFarmaciaCount = computed(() => solicitacoes.value.filter(s => s.status === 'AUTORIZADO').length);
-const emAnaliseFarmaciaCount = computed(() => 0);
-const autorizadasFarmaciaCount = computed(() => solicitacoes.value.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status)).length);
-const entregueFarmaciaCount = computed(() => solicitacoes.value.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status)).length);
+const pendentesFarmaciaCount = computed(() => solicitacoes.value.filter(s => s.status === 'AUTORIZADO' || s.status === 'AUDITADO').length);
+const autorizadasFarmaciaCount = computed(() => solicitacoes.value.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status || '')).length);
+const entregueFarmaciaCount = computed(() => solicitacoes.value.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status || '')).length);
 
-const metricCards = computed(() => [
-  { label: 'PENDENTES', sector: 'CCIRAS', value: pendentesCcirasCount.value, color: 'text-yellow-600', filterKey: 'PENDENTES - CCIRAS' },
-  { label: 'EM ANÁLISE', sector: 'CCIRAS', value: emAnaliseCcirasCount.value, color: 'text-orange-550', filterKey: 'EM ANÁLISE - CCIRAS' },
-  { label: 'AUTORIZADAS', sector: 'CCIRAS', value: autorizadasCcirasCount.value, color: 'text-blue-600', filterKey: 'AUTORIZADAS - CCIRAS' },
-  { label: 'ENTREGUE', sector: 'CCIRAS', value: entregueCcirasCount.value, color: 'text-emerald-600', filterKey: 'ENTREGUE - CCIRAS' },
-  { label: 'PENDENTES', sector: 'FARMÁCIA', value: pendentesFarmaciaCount.value, color: 'text-yellow-600', filterKey: 'PENDENTES - FARMÁCIA' },
-  { label: 'EM ANÁLISE', sector: 'FARMÁCIA', value: emAnaliseFarmaciaCount.value, color: 'text-orange-550', filterKey: 'EM ANÁLISE - FARMÁCIA' },
-  { label: 'AUTORIZADAS', sector: 'FARMÁCIA', value: autorizadasFarmaciaCount.value, color: 'text-blue-600', filterKey: 'AUTORIZADAS - FARMÁCIA' },
-  { label: 'ENTREGUE', sector: 'FARMÁCIA', value: entregueFarmaciaCount.value, color: 'text-emerald-600', filterKey: 'ENTREGUE - FARMÁCIA' }
-]);
+const metricCardsFiltrados = computed(() => {
+  if (isCciras.value) {
+    return [
+      { label: 'PENDENTES', sector: 'CCIRAS', value: pendentesCcirasCount.value, color: 'text-yellow-600', filterKey: 'PENDENTES - CCIRAS' },
+      { label: 'EM ANÁLISE', sector: 'CCIRAS', value: emAnaliseCcirasCount.value, color: 'text-orange-550', filterKey: 'EM ANÁLISE - CCIRAS' },
+      { label: 'AUDITADAS', sector: 'CCIRAS', value: autorizadasCcirasCount.value, color: 'text-blue-600', filterKey: 'AUDITADAS - CCIRAS' },
+      { label: 'ENTREGUE', sector: 'CCIRAS', value: entregueCcirasCount.value, color: 'text-emerald-600', filterKey: 'ENTREGUE - CCIRAS' }
+    ];
+  } else if (isFarmacia.value) {
+    return [
+      { label: 'PENDENTES', sector: 'FARMÁCIA', value: pendentesFarmaciaCount.value, color: 'text-yellow-600', filterKey: 'PENDENTES - FARMÁCIA' },
+      { label: 'AVALIADAS', sector: 'FARMÁCIA', value: autorizadasFarmaciaCount.value, color: 'text-blue-600', filterKey: 'AVALIADAS - FARMÁCIA' },
+      { label: 'ENTREGUE', sector: 'FARMÁCIA', value: entregueFarmaciaCount.value, color: 'text-emerald-600', filterKey: 'ENTREGUE - FARMÁCIA' }
+    ];
+  } else {
+    const mySols = solicitacoes.value.filter(s => s.solicitante === authStore.user?.username);
+    const pendentes = mySols.filter(s => s.status === 'PENDENTE').length;
+    const emAnalise = mySols.filter(s => s.status === 'EM ANÁLISE').length;
+    const auditadas = mySols.filter(s => s.status === 'AUTORIZADO' || s.status === 'AUDITADO').length;
+    const entregues = mySols.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status || '')).length;
+    
+    return [
+      { label: 'PENDENTES', sector: 'ENFERMAGEM', value: pendentes, color: 'text-yellow-600', filterKey: 'PENDENTES - ENFERMAGEM' },
+      { label: 'EM ANÁLISE', sector: 'ENFERMAGEM', value: emAnalise, color: 'text-orange-550', filterKey: 'EM ANÁLISE - ENFERMAGEM' },
+      { label: 'AUDITADAS', sector: 'ENFERMAGEM', value: auditadas, color: 'text-blue-600', filterKey: 'AUDITADAS - ENFERMAGEM' },
+      { label: 'ENTREGUES', sector: 'ENFERMAGEM', value: entregues, color: 'text-emerald-600', filterKey: 'ENTREGUES - ENFERMAGEM' }
+    ];
+  }
+});
 
 const filtroCardAtivo = ref<string | null>(null);
 
@@ -472,24 +618,86 @@ watch(isCciras, () => {
 const solicitacoesFiltradas = computed(() => {
   let list = solicitacoes.value;
 
+  // Filtro específico do perfil de Enfermagem (ver apenas seus próprios pedidos)
+  if (isEnfermagem.value && authStore.user?.givenName?.[0]) {
+    // Tenta casar pelo solicitante
+    const usernameLogado = authStore.user.username.toLowerCase();
+    const nomeLogado = authStore.user.givenName[0].toLowerCase();
+    list = list.filter(s => {
+      const solLower = s.solicitante.toLowerCase();
+      return solLower.includes(usernameLogado) || solLower.includes(nomeLogado);
+    });
+  }
+
+  // Filtro por Unidade Funcional
+  if (filtroUnidade.value) {
+    list = list.filter(s => {
+      if (!s.leito) return false;
+      return s.leito.toLowerCase().includes(filtroUnidade.value.toLowerCase());
+    });
+  }
+
+  // Filtro por Período
+  if (filtroPeriodo.value !== 'todos') {
+    const now = new Date();
+    list = list.filter(s => {
+      if (!s.created_at) return false;
+      const date = new Date(s.created_at);
+      if (filtroPeriodo.value === 'hoje') {
+        return date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+      }
+      if (filtroPeriodo.value === '7d') {
+        const diffTime = Math.abs(now.getTime() - date.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays <= 7;
+      }
+      if (filtroPeriodo.value === '30d') {
+        const diffTime = Math.abs(now.getTime() - date.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays <= 30;
+      }
+      if (filtroPeriodo.value === 'mes') {
+        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+      }
+      if (filtroPeriodo.value === 'personalizado') {
+        if (filtroDataInicio.value) {
+          const start = new Date(filtroDataInicio.value + 'T00:00:00');
+          if (date < start) return false;
+        }
+        if (filtroDataFim.value) {
+          const end = new Date(filtroDataFim.value + 'T23:59:59');
+          if (date > end) return false;
+        }
+        return true;
+      }
+      return true;
+    });
+  }
+
   if (filtroCardAtivo.value) {
     const cardTitle = filtroCardAtivo.value;
     if (cardTitle === 'PENDENTES - CCIRAS') {
       list = list.filter(s => s.status === 'PENDENTE');
     } else if (cardTitle === 'EM ANÁLISE - CCIRAS') {
       list = list.filter(s => s.status === 'EM ANÁLISE');
-    } else if (cardTitle === 'AUTORIZADAS - CCIRAS') {
-      list = list.filter(s => s.status === 'AUTORIZADO');
+    } else if (cardTitle === 'AUDITADAS - CCIRAS') {
+      list = list.filter(s => s.status === 'AUTORIZADO' || s.status === 'AUDITADO');
     } else if (cardTitle === 'ENTREGUE - CCIRAS') {
-      list = list.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status));
+      list = list.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status || ''));
     } else if (cardTitle === 'PENDENTES - FARMÁCIA') {
-      list = list.filter(s => s.status === 'AUTORIZADO');
-    } else if (cardTitle === 'EM ANÁLISE - FARMÁCIA') {
-      list = [];
-    } else if (cardTitle === 'AUTORIZADAS - FARMÁCIA') {
-      list = list.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status));
+      list = list.filter(s => s.status === 'AUTORIZADO' || s.status === 'AUDITADO');
+    } else if (cardTitle === 'AVALIADAS - FARMÁCIA') {
+      list = list.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status || ''));
     } else if (cardTitle === 'ENTREGUE - FARMÁCIA') {
-      list = list.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status));
+      list = list.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status || ''));
+    } else if (cardTitle === 'PENDENTES - ENFERMAGEM') {
+      list = list.filter(s => s.status === 'PENDENTE');
+    } else if (cardTitle === 'EM ANÁLISE - ENFERMAGEM') {
+      list = list.filter(s => s.status === 'EM ANÁLISE');
+    } else if (cardTitle === 'AUDITADAS - ENFERMAGEM') {
+      list = list.filter(s => s.status === 'AUTORIZADO' || s.status === 'AUDITADO');
+    } else if (cardTitle === 'ENTREGUES - ENFERMAGEM') {
+      list = list.filter(s => ['LIBERADO', 'ENTREGUE'].includes(s.status || ''));
     }
   }
   
@@ -519,10 +727,12 @@ const getStatusBadgeClass = (status?: string) => {
     case 'EM ANÁLISE':
       return 'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200';
     case 'AUTORIZADO':
+    case 'AUDITADO':
       return 'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200';
     case 'NEGADO':
       return 'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200';
     case 'LIBERADO':
+    case 'LIBERADO/CONCLUÍDO':
     case 'ENTREGUE':
       return 'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200';
     case 'EM FALTA':
@@ -566,11 +776,15 @@ const abrirAcoes = (sol: SolicitacaoCobertura) => {
   solicitacaoSelecionada.value = sol;
   parecerCciras.value = sol.justificativa || '';
   parecerFarmacia.value = sol.parecer_farmacia || '';
-  itensEdicao.value = sol.itens.map(i => ({
-    ...i,
-    quantidade_autorizada: i.quantidade_autorizada !== null && i.quantidade_autorizada !== undefined ? i.quantidade_autorizada : i.quantidade_solicitada,
-    quantidade_liberada: i.quantidade_liberada !== null && i.quantidade_liberada !== undefined ? i.quantidade_liberada : (i.quantidade_autorizada || i.quantidade_solicitada)
-  }));
+  itensEdicao.value = sol.itens.map(i => {
+    const qtdAut = i.quantidade_autorizada !== null && i.quantidade_autorizada !== undefined ? i.quantidade_autorizada : i.quantidade_solicitada;
+    const qtdLib = i.quantidade_liberada !== null && i.quantidade_liberada !== undefined ? i.quantidade_liberada : qtdAut;
+    return {
+      ...i,
+      quantidade_autorizada: qtdAut,
+      quantidade_liberada: qtdLib
+    };
+  });
   showDetalhesModal.value = true;
 };
 
@@ -579,7 +793,7 @@ const submeterDecisaoCciras = async (statusGeral: string) => {
   if (!solicitacaoSelecionada.value?.id) return;
 
   let statusParaEnviar = statusGeral;
-  if (statusGeral === 'AUTORIZADO') {
+  if (statusGeral === 'AUDITADO') {
     const todosNegados = itensEdicao.value.every(i => i.quantidade_autorizada === 0 || i.status_item === 'NEGADO');
     if (todosNegados) {
       statusParaEnviar = 'NEGADO';
@@ -608,7 +822,7 @@ const submeterDecisaoCciras = async (statusGeral: string) => {
       status_geral: statusParaEnviar,
       justificativa: parecerCciras.value,
       itens: itensEdicao.value.map(i => {
-        let itemStatus = 'AUTORIZADO';
+        let itemStatus = 'AUDITADO';
         if (i.quantidade_autorizada === 0 || i.status_item === 'NEGADO') {
           itemStatus = 'NEGADO';
         }
@@ -623,8 +837,8 @@ const submeterDecisaoCciras = async (statusGeral: string) => {
     
     if (statusParaEnviar === 'LIBERADO') {
       toast.success('Entregue - Egresso registrado com sucesso!');
-    } else if (statusParaEnviar === 'AUTORIZADO') {
-      toast.success('autorizado com sucesso');
+    } else if (statusParaEnviar === 'AUDITADO') {
+      toast.success('Auditado com sucesso');
     } else if (statusParaEnviar === 'NEGADO') {
       toast.success('solicitação negada com sucesso');
     } else {
@@ -642,18 +856,20 @@ const submeterDecisaoCciras = async (statusGeral: string) => {
 const submeterDecisaoFarmacia = async (statusGeral: string) => {
   if (!solicitacaoSelecionada.value?.id) return;
 
-  if (solicitacaoSelecionada.value.status === 'PENDENTE' || solicitacaoSelecionada.value.status === 'EM ANÁLISE') {
-    toast.warning('Autorização da CCIRAS  PENDENTE. Aguarde autorização.');
+  const situacaoCciras = getSituacaoCciras(solicitacaoSelecionada.value);
+  if (situacaoCciras === 'PENDENTE' || situacaoCciras === 'EM ANÁLISE') {
+    toast.warning('Auditoria da CCIRAS PENDENTE. Aguarde auditoria.');
     return;
   }
 
-  if (!parecerFarmacia.value.trim()) {
+  const alterouParaValorMaiorQueZero = itensEdicao.value.some(i => i.quantidade_liberada !== i.quantidade_autorizada && i.quantidade_liberada > 0);
+  if (alterouParaValorMaiorQueZero && !parecerFarmacia.value.trim()) {
     toast.warning('Por favor, registre a justificativa/parecer da Farmácia.');
     return;
   }
 
   // Se todos os itens autorizados estão com quantidade_liberada = 0, o status geral deve ser 'EM FALTA'
-  const itensAutorizados = itensEdicao.value.filter(i => i.status_item === 'AUTORIZADO');
+  const itensAutorizados = itensEdicao.value.filter(i => i.status_item === 'AUTORIZADO' || i.status_item === 'AUDITADO');
   const todosEmFalta = itensAutorizados.length > 0 && itensAutorizados.every(i => i.quantidade_liberada === 0);
   const statusParaEnviar = todosEmFalta ? 'EM FALTA' : statusGeral;
 
@@ -708,7 +924,7 @@ const negarItem = (item: any) => {
 
 const ajustarQuantidade = (item: any) => {
   if (item.quantidade_autorizada > 0) {
-    item.status_item = 'AUTORIZADO';
+    item.status_item = 'AUDITADO';
   }
 };
 
@@ -764,6 +980,8 @@ onMounted(() => {
     modoExibicao.value = 'cciras';
   } else if (authStore.isFarmacia) {
     modoExibicao.value = 'farmacia';
+  } else {
+    modoExibicao.value = 'enfermagem';
   }
 });
 

@@ -59,6 +59,15 @@ class MockAuthProvider(AuthProviderInterface):
                 "groups": ["SOL-COB-FARMACIA", "Users"],
                 "email": "farmacia@mock.com"
             }
+        elif username == "enfermagem" and password == "enfermagem":
+            print(f"Authentication successful for mock user: {username}")
+            return {
+                "username": "enfermagem",
+                "givenName": ["Mock Enfermagem"],
+                "displayName": ["Mock Enfermagem"],
+                "groups": ["SOL-COB-ENFERMAGEM", "Users"],
+                "email": "enfermagem@mock.com"
+            }
         else:
             print(f"Authentication failed for mock user: {username}")
             raise HTTPException(
